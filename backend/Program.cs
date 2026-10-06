@@ -66,6 +66,7 @@ app.UseSwaggerUI(c =>
     c.RoutePrefix = "swagger";
 });
 
+app.UseRouting();
 app.UseCors("AllowAll");
 
 // Disable HTTPS redirection in local dev if running plain HTTP
