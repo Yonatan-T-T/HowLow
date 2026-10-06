@@ -1,23 +1,23 @@
-import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
-import { UserProvider, useUser } from './context/UserContext';
-import { ThemeProvider } from './context/ThemeContext';
-import { Navbar } from './components/Navbar';
-import { WalletTopUpModal } from './components/WalletTopUpModal';
-import { HomeCatalog } from './views/HomeCatalog';
-import { AuctionDetailBid } from './views/AuctionDetailBid';
-import { AdminDashboard } from './views/AdminDashboard';
-import { AdminCreateAuction } from './views/AdminCreateAuction';
-import { ShieldCheck } from 'lucide-react';
+import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
+import { UserProvider, useUser } from "./context/UserContext";
+import { ThemeProvider } from "./context/ThemeContext";
+import { Navbar } from "./components/Navbar";
+import { WalletTopUpModal } from "./components/WalletTopUpModal";
+import { HomeCatalog } from "./views/HomeCatalog";
+import { AuctionDetailBid } from "./views/AuctionDetailBid";
+import { AdminDashboard } from "./views/AdminDashboard";
+import { AdminCreateAuction } from "./views/AdminCreateAuction";
+import { ShieldCheck } from "lucide-react";
 
 function AppContent() {
   const { currentUser } = useUser();
-  const isAdmin = currentUser?.role === 'Admin';
+  const isAdmin = currentUser?.role === "Admin";
 
   return (
     <BrowserRouter>
-      <div className="min-h-screen flex flex-col bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 selection:bg-emerald-500 selection:text-white transition-colors duration-200">
+      <div className="min-h-screen flex flex-col bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 selection:bg-emerald-500 selection:text-white transition-colors duration-200 overflow-x-hidden">
         <Navbar />
-        
+
         <main className="flex-1">
           <Routes>
             <Route path="/" element={<HomeCatalog />} />
@@ -40,16 +40,29 @@ function AppContent() {
               <span className="font-semibold text-slate-700 dark:text-slate-400">
                 Unique Low Auction Protocol &copy; {new Date().getFullYear()}
               </span>
-              <span className="hidden sm:inline">&bull; Guaranteed Lowest Unique Bid Algorithm</span>
+              <span className="hidden sm:inline">
+                &bull; Guaranteed Lowest Unique Bid Algorithm
+              </span>
             </div>
 
             <div className="flex items-center gap-6">
-              <Link to="/" className="hover:text-slate-900 dark:hover:text-slate-300 transition-colors">Catalog</Link>
+              <Link
+                to="/"
+                className="hover:text-slate-900 dark:hover:text-slate-300 transition-colors"
+              >
+                Catalog
+              </Link>
               {isAdmin && (
-                <Link to="/admin" className="hover:text-slate-900 dark:hover:text-slate-300 transition-colors">Admin Portal</Link>
+                <Link
+                  to="/admin"
+                  className="hover:text-slate-900 dark:hover:text-slate-300 transition-colors"
+                >
+                  Admin Portal
+                </Link>
               )}
               <span className="flex items-center gap-1 text-slate-600 dark:text-slate-400">
-                <ShieldCheck className="w-3.5 h-3.5 text-emerald-500 dark:text-emerald-400" /> 100% Blind & Provably Fair
+                <ShieldCheck className="w-3.5 h-3.5 text-emerald-500 dark:text-emerald-400" />{" "}
+                100% Blind & Provably Fair
               </span>
             </div>
           </div>

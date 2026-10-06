@@ -92,87 +92,80 @@
   box-shadow: 0 0 25px rgba(16, 185, 129, 0.12);
 }
 
-/* Light mode styling system */
+/* ==========================================================================
+   Light Mode Design System Overrides (Applied when html does NOT have .dark)
+   ========================================================================== */
+
+/* 1. Panel Backgrounds */
 html:not(.dark) .bg-slate-950 {
   background-color: #ffffff;
 }
 
-html:not(.dark) .bg-slate-950\/80 {
-  background-color: rgba(255, 255, 255, 0.88);
-}
-
-html:not(.dark) .bg-slate-950\/90 {
-  background-color: rgba(255, 255, 255, 0.96);
-}
-
-html:not(.dark) .bg-slate-950\/60 {
-  background-color: rgba(248, 250, 252, 0.9);
+html:not(.dark) .bg-slate-950\/90,
+html:not(.dark) .bg-slate-950\/80,
+html:not(.dark) .bg-slate-950\/70,
+html:not(.dark) .bg-slate-950\/60,
+html:not(.dark) .bg-slate-950\/50,
+html:not(.dark) .bg-slate-950\/40 {
+  background-color: rgba(255, 255, 255, 0.95);
 }
 
 html:not(.dark) .bg-slate-900 {
+  background-color: #ffffff;
+}
+
+html:not(.dark) .bg-slate-900\/90,
+html:not(.dark) .bg-slate-900\/80,
+html:not(.dark) .bg-slate-900\/60,
+html:not(.dark) .bg-slate-900\/40 {
   background-color: #f8fafc;
-}
-
-html:not(.dark) .bg-slate-900\/90 {
-  background-color: rgba(248, 250, 252, 0.96);
-}
-
-html:not(.dark) .bg-slate-900\/80 {
-  background-color: rgba(248, 250, 252, 0.9);
-}
-
-html:not(.dark) .bg-slate-900\/60 {
-  background-color: rgba(248, 250, 252, 0.75);
 }
 
 html:not(.dark) .bg-slate-800 {
   background-color: #f1f5f9;
 }
 
-html:not(.dark) .bg-slate-800\/80 {
-  background-color: rgba(241, 245, 249, 0.9);
+html:not(.dark) .bg-slate-800\/90,
+html:not(.dark) .bg-slate-800\/80,
+html:not(.dark) .bg-slate-800\/60,
+html:not(.dark) .bg-slate-800\/50,
+html:not(.dark) .bg-slate-800\/30 {
+  background-color: #f1f5f9;
 }
 
-html:not(.dark) .bg-slate-800\/60 {
-  background-color: rgba(241, 245, 249, 0.7);
+/* Table Headings & Dividers */
+html:not(.dark) thead.bg-slate-950\/80,
+html:not(.dark) thead {
+  background-color: #f1f5f9;
+  color: #475569;
 }
 
-html:not(.dark) .border-slate-950,
-html:not(.dark) .border-slate-900 {
+html:not(.dark) .divide-slate-800\/80 > * + * {
   border-color: #e2e8f0;
 }
 
+/* 2. Borders */
+html:not(.dark) .border-slate-950,
+html:not(.dark) .border-slate-900,
 html:not(.dark) .border-slate-800,
 html:not(.dark) .border-slate-800\/80,
-html:not(.dark) .border-slate-800\/60 {
+html:not(.dark) .border-slate-800\/60,
+html:not(.dark) .border-slate-700,
+html:not(.dark) .border-slate-700\/60 {
   border-color: #e2e8f0;
 }
 
-html:not(.dark) .border-slate-700,
-html:not(.dark) .border-slate-700\/60 {
-  border-color: #cbd5e1;
-}
-
+/* 3. Base Text Colors */
 html:not(.dark) .text-white {
   color: #0f172a;
 }
 
-/* Ensure buttons and colored badges retain white text */
-html:not(.dark) button.bg-emerald-600,
-html:not(.dark) button.bg-emerald-500,
-html:not(.dark) .bg-emerald-600,
-html:not(.dark) .bg-emerald-500,
-html:not(.dark) .bg-emerald-600 *,
-html:not(.dark) .bg-emerald-500 *,
-html:not(.dark) .bg-indigo-600,
-html:not(.dark) .bg-indigo-600 *,
-html:not(.dark) .bg-amber-600,
-html:not(.dark) .bg-amber-600 *,
-html:not(.dark) .bg-rose-600,
-html:not(.dark) .bg-rose-600 *,
-html:not(.dark) [class*="from-emerald-"] *,
-html:not(.dark) [class*="from-indigo-"] * {
-  color: #ffffff;
+html:not(.dark) .text-slate-100 {
+  color: #0f172a;
+}
+
+html:not(.dark) .text-slate-200 {
+  color: #1e293b;
 }
 
 html:not(.dark) .text-slate-300 {
@@ -180,27 +173,103 @@ html:not(.dark) .text-slate-300 {
 }
 
 html:not(.dark) .text-slate-400 {
+  color: #475569;
+}
+
+html:not(.dark) .text-slate-500 {
   color: #64748b;
 }
 
-html:not(.dark) .text-slate-200 {
-  color: #1e293b;
+/* 4. High-Contrast Accent Text Colors for Light Mode */
+html:not(.dark) .text-emerald-400,
+html:not(.dark) .text-emerald-300 {
+  color: #059669; /* Rich Emerald */
 }
 
-html:not(.dark) .hover\:text-white:hover {
-  color: #0f172a;
+html:not(.dark) .text-indigo-400,
+html:not(.dark) .text-indigo-300,
+html:not(.dark) .text-indigo-200 {
+  color: #4f46e5; /* Deep Indigo */
 }
 
-html:not(.dark) .hover\:bg-slate-900:hover {
-  background-color: #f1f5f9;
+html:not(.dark) .text-amber-400,
+html:not(.dark) .text-amber-300,
+html:not(.dark) .text-amber-200 {
+  color: #d97706; /* High-contrast Gold/Amber */
 }
 
-html:not(.dark) .hover\:bg-slate-800:hover {
-  background-color: #e2e8f0;
+html:not(.dark) .text-cyan-400,
+html:not(.dark) .text-cyan-300 {
+  color: #0891b2; /* Deep Cyan */
 }
 
+html:not(.dark) .text-rose-400,
+html:not(.dark) .text-rose-300 {
+  color: #e11d48; /* High-contrast Rose */
+}
+
+/* 5. Preserve Pure White Text & Icons on Solid Dark Buttons, Gradients & Avatars */
+html:not(.dark) .bg-emerald-600,
+html:not(.dark) .bg-emerald-600 *,
+html:not(.dark) .bg-emerald-500.text-slate-950,
+html:not(.dark) .bg-emerald-500.text-slate-950 *,
+html:not(.dark) .bg-indigo-600,
+html:not(.dark) .bg-indigo-600 *,
+html:not(.dark) .bg-amber-600,
+html:not(.dark) .bg-amber-600 *,
+html:not(.dark) .bg-rose-600,
+html:not(.dark) .bg-rose-600 *,
+html:not(.dark) .bg-slate-800.text-white,
+html:not(.dark) .bg-gradient-to-tr *,
+html:not(.dark) .bg-gradient-to-br *,
+html:not(.dark) .bg-gradient-to-r.from-amber-500\/20 *,
+html:not(.dark) button.bg-emerald-600 *,
+html:not(.dark) button.bg-indigo-600 *,
+html:not(.dark) a.bg-emerald-600 * {
+  color: #ffffff;
+}
+
+/* Re-ensure icon strokes on solid buttons are white */
+html:not(.dark) .bg-emerald-600 svg,
+html:not(.dark) .bg-indigo-600 svg,
+html:not(.dark) .bg-amber-600 svg,
+html:not(.dark) .bg-rose-600 svg {
+  color: #ffffff !important;
+  stroke: #ffffff;
+}
+
+/* 6. Modals & Backdrop Overlays */
+html:not(.dark) .fixed.inset-0.bg-slate-950\/80,
+html:not(.dark) .fixed.inset-0.bg-slate-950\/70 {
+  background-color: rgba(15, 23, 42, 0.6);
+}
+
+html:not(.dark) .fixed .bg-slate-900 {
+  background-color: #ffffff;
+  border-color: #cbd5e1;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+/* 7. Form Inputs, Selects & Placeholders */
 html:not(.dark) input,
 html:not(.dark) select,
 html:not(.dark) textarea {
+  background-color: #ffffff;
+  color: #0f172a;
+  border-color: #cbd5e1;
+}
+
+html:not(.dark) input::placeholder,
+html:not(.dark) textarea::placeholder {
+  color: #94a3b8;
+}
+
+/* 8. Interactive Hovers */
+html:not(.dark) .hover\:bg-slate-900:hover,
+html:not(.dark) .hover\:bg-slate-800:hover {
+  background-color: #f1f5f9;
+}
+
+html:not(.dark) .hover\:text-white:hover {
   color: #0f172a;
 }
