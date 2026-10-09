@@ -10,9 +10,61 @@ public static class DbInitializer
     {
         await context.Database.EnsureCreatedAsync();
 
-        // Check if database needs seeding or updating with passwords
+        // Ensure schema compatibility for SQLite (add PhoneNumber column and TopUpRequests table if missing)
+        try
+        {
+            await context.Database.ExecuteSqlRawAsync("ALTER TABLE Users ADD COLUMN PhoneNumber TEXT DEFAULT '' NOT NULL;");
+        }
+        catch { /* Column already exists */ }
+
+        try
+        {
+            await context.Database.ExecuteSqlRawAsync(@"
+                CREATE TABLE IF NOT EXISTS TopUpRequests (
+                    Id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    UserId INTEGER NOT NULL,
+                    SenderPhoneNumber TEXT NOT NULL,
+                    ReceiverPhoneNumber TEXT NOT NULL,
+                    ReceiverName TEXT NOT NULL,
+                    Amount TEXT NOT NULL,
+                    TransactionNumber TEXT NOT NULL,
+                    Status TEXT NOT NULL,
+                    CreatedAt TEXT NOT NULL,
+                    ReviewedAt TEXT NULL,
+                    ReviewedBy TEXT NULL,
+                    AdminNotes TEXT NULL,
+                    FOREIGN KEY(UserId) REFERENCES Users(Id) ON DELETE CASCADE
+                );");
+        }
+        catch { /* Table already exists */ }
+
+        // Check if database needs seeding or updating with passwords & phone numbers
         if (await context.Users.AnyAsync())
         {
+            // If existing users have empty phone numbers, populate them
+            var usersWithoutPhone = await context.Users
+                .Where(u => string.IsNullOrEmpty(u.PhoneNumber))
+                .ToListAsync();
+
+            if (usersWithoutPhone.Any())
+            {
+                foreach (var user in usersWithoutPhone)
+                {
+                    user.PhoneNumber = user.Username.ToLower() switch
+                    {
+                        "admin1" => "0911000001",
+                        "admin2" => "0911000002",
+                        "bob" => "0911223344",
+                        "charlie" => "0922334455",
+                        "diana" => "0933445566",
+                        "evan" => "0944556677",
+                        "fiona" => "0955667788",
+                        _ => "0912345678"
+                    };
+                }
+                await context.SaveChangesAsync();
+            }
+
             // If existing users have empty password hashes, populate them
             var usersWithoutPassword = await context.Users
                 .Where(u => string.IsNullOrEmpty(u.PasswordHash))
@@ -38,6 +90,7 @@ public static class DbInitializer
                 {
                     Username = "admin2",
                     Email = "admin2@uniquelow.com",
+                    PhoneNumber = "0911000002",
                     Balance = 1000.00m,
                     Role = "Admin",
                     PasswordHash = h2,
@@ -55,6 +108,7 @@ public static class DbInitializer
                 {
                     Username = "fiona",
                     Email = "fiona@example.com",
+                    PhoneNumber = "0955667788",
                     Balance = 300.00m,
                     Role = "User",
                     PasswordHash = hf,
@@ -73,6 +127,7 @@ public static class DbInitializer
         {
             Username = "admin1",
             Email = "admin1@uniquelow.com",
+            PhoneNumber = "0911000001",
             Balance = 1000.00m,
             Role = "Admin",
             PasswordHash = admin1Hash,
@@ -85,6 +140,7 @@ public static class DbInitializer
         {
             Username = "admin2",
             Email = "admin2@uniquelow.com",
+            PhoneNumber = "0911000002",
             Balance = 1000.00m,
             Role = "Admin",
             PasswordHash = admin2Hash,
@@ -98,6 +154,7 @@ public static class DbInitializer
         {
             Username = "bob",
             Email = "bob@example.com",
+            PhoneNumber = "0911223344",
             Balance = 250.00m,
             Role = "User",
             PasswordHash = userPassHash,
@@ -109,6 +166,7 @@ public static class DbInitializer
         {
             Username = "charlie",
             Email = "charlie@example.com",
+            PhoneNumber = "0922334455",
             Balance = 180.00m,
             Role = "User",
             PasswordHash = userPassHash,
@@ -120,6 +178,7 @@ public static class DbInitializer
         {
             Username = "diana",
             Email = "diana@example.com",
+            PhoneNumber = "0933445566",
             Balance = 220.00m,
             Role = "User",
             PasswordHash = userPassHash,
@@ -131,6 +190,7 @@ public static class DbInitializer
         {
             Username = "evan",
             Email = "evan@example.com",
+            PhoneNumber = "0944556677",
             Balance = 150.00m,
             Role = "User",
             PasswordHash = userPassHash,
@@ -142,6 +202,7 @@ public static class DbInitializer
         {
             Username = "fiona",
             Email = "fiona@example.com",
+            PhoneNumber = "0955667788",
             Balance = 300.00m,
             Role = "User",
             PasswordHash = userPassHash,

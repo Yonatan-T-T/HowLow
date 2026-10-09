@@ -23,7 +23,8 @@ public class UserService : IUserService
                 Username = u.Username,
                 Email = u.Email,
                 Balance = u.Balance,
-                Role = u.Role
+                Role = u.Role,
+                PhoneNumber = u.PhoneNumber
             })
             .ToListAsync();
     }
@@ -39,7 +40,8 @@ public class UserService : IUserService
             Username = user.Username,
             Email = user.Email,
             Balance = user.Balance,
-            Role = user.Role
+            Role = user.Role,
+            PhoneNumber = user.PhoneNumber
         };
     }
 

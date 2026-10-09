@@ -51,10 +51,13 @@ public class AuthService : IAuthService
             ? "Admin" 
             : "User";
 
+        var cleanPhone = dto.PhoneNumber?.Trim() ?? string.Empty;
+
         var user = new User
         {
             Username = cleanUsername,
             Email = cleanEmail,
+            PhoneNumber = cleanPhone,
             Balance = 100.00m, // Welcome balance
             Role = role,
             PasswordHash = hash,
@@ -70,6 +73,7 @@ public class AuthService : IAuthService
             Id = user.Id,
             Username = user.Username,
             Email = user.Email,
+            PhoneNumber = user.PhoneNumber,
             Balance = user.Balance,
             Role = user.Role
         };
@@ -118,6 +122,7 @@ public class AuthService : IAuthService
             Id = user.Id,
             Username = user.Username,
             Email = user.Email,
+            PhoneNumber = user.PhoneNumber,
             Balance = user.Balance,
             Role = user.Role
         };
@@ -143,6 +148,7 @@ public class AuthService : IAuthService
             Id = user.Id,
             Username = user.Username,
             Email = user.Email,
+            PhoneNumber = user.PhoneNumber,
             Balance = user.Balance,
             Role = user.Role
         };
@@ -157,6 +163,7 @@ public class AuthService : IAuthService
             {
                 Username = "admin1",
                 Email = "admin1@uniquelow.com",
+                PhoneNumber = "0911000001",
                 Password = "AdminPassword123!",
                 Role = "Admin",
                 Balance = 1000.00m
@@ -165,6 +172,7 @@ public class AuthService : IAuthService
             {
                 Username = "admin2",
                 Email = "admin2@uniquelow.com",
+                PhoneNumber = "0911000002",
                 Password = "AdminPassword123!",
                 Role = "Admin",
                 Balance = 1000.00m
@@ -175,6 +183,7 @@ public class AuthService : IAuthService
             {
                 Username = "bob",
                 Email = "bob@example.com",
+                PhoneNumber = "0911223344",
                 Password = "UserPassword123!",
                 Role = "User",
                 Balance = 250.00m
@@ -183,6 +192,7 @@ public class AuthService : IAuthService
             {
                 Username = "charlie",
                 Email = "charlie@example.com",
+                PhoneNumber = "0922334455",
                 Password = "UserPassword123!",
                 Role = "User",
                 Balance = 180.00m
@@ -191,6 +201,7 @@ public class AuthService : IAuthService
             {
                 Username = "diana",
                 Email = "diana@example.com",
+                PhoneNumber = "0933445566",
                 Password = "UserPassword123!",
                 Role = "User",
                 Balance = 220.00m
@@ -199,6 +210,7 @@ public class AuthService : IAuthService
             {
                 Username = "evan",
                 Email = "evan@example.com",
+                PhoneNumber = "0944556677",
                 Password = "UserPassword123!",
                 Role = "User",
                 Balance = 150.00m
@@ -207,6 +219,7 @@ public class AuthService : IAuthService
             {
                 Username = "fiona",
                 Email = "fiona@example.com",
+                PhoneNumber = "0955667788",
                 Password = "UserPassword123!",
                 Role = "User",
                 Balance = 300.00m

@@ -13,6 +13,7 @@ public class AppDbContext : DbContext
     public DbSet<AuctionItem> AuctionItems => Set<AuctionItem>();
     public DbSet<AuctionRegistration> AuctionRegistrations => Set<AuctionRegistration>();
     public DbSet<Bid> Bids => Set<Bid>();
+    public DbSet<TopUpRequest> TopUpRequests => Set<TopUpRequest>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

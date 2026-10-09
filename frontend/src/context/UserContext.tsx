@@ -12,6 +12,7 @@ const PRESET_TEST_PROFILES: TestProfile[] = [
   {
     username: "admin1",
     email: "admin1@uniquelow.com",
+    phoneNumber: "0911000001",
     password: "AdminPassword123!",
     role: "Admin",
     balance: 1000.0,
@@ -19,6 +20,7 @@ const PRESET_TEST_PROFILES: TestProfile[] = [
   {
     username: "admin2",
     email: "admin2@uniquelow.com",
+    phoneNumber: "0911000002",
     password: "AdminPassword123!",
     role: "Admin",
     balance: 1000.0,
@@ -26,6 +28,7 @@ const PRESET_TEST_PROFILES: TestProfile[] = [
   {
     username: "bob",
     email: "bob@example.com",
+    phoneNumber: "0911223344",
     password: "UserPassword123!",
     role: "User",
     balance: 250.0,
@@ -33,6 +36,7 @@ const PRESET_TEST_PROFILES: TestProfile[] = [
   {
     username: "charlie",
     email: "charlie@example.com",
+    phoneNumber: "0922334455",
     password: "UserPassword123!",
     role: "User",
     balance: 180.0,
@@ -40,6 +44,7 @@ const PRESET_TEST_PROFILES: TestProfile[] = [
   {
     username: "diana",
     email: "diana@example.com",
+    phoneNumber: "0933445566",
     password: "UserPassword123!",
     role: "User",
     balance: 220.0,
@@ -47,6 +52,7 @@ const PRESET_TEST_PROFILES: TestProfile[] = [
   {
     username: "evan",
     email: "evan@example.com",
+    phoneNumber: "0944556677",
     password: "UserPassword123!",
     role: "User",
     balance: 150.0,
@@ -54,6 +60,7 @@ const PRESET_TEST_PROFILES: TestProfile[] = [
   {
     username: "fiona",
     email: "fiona@example.com",
+    phoneNumber: "0955667788",
     password: "UserPassword123!",
     role: "User",
     balance: 300.0,
@@ -67,7 +74,7 @@ interface UserContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (usernameOrEmail: string, password: string) => Promise<{ success: boolean; message: string }>;
-  signup: (username: string, email: string, password: string, role?: string) => Promise<{ success: boolean; message: string }>;
+  signup: (username: string, email: string, phoneNumber: string, password: string, role?: string) => Promise<{ success: boolean; message: string }>;
   logout: () => void;
   switchUser: (userId: number) => void;
   quickLoginAs: (profile: TestProfile) => Promise<{ success: boolean; message: string }>;
@@ -158,11 +165,12 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
   const signup = async (
     username: string,
     email: string,
+    phoneNumber: string,
     password: string,
     role = "User"
   ): Promise<{ success: boolean; message: string }> => {
     try {
-      const response = await api.register(username, email, password, role);
+      const response = await api.register(username, email, phoneNumber, password, role);
       if (response.success && response.user) {
         setCurrentUser(response.user);
         localStorage.setItem("unique_low_user", JSON.stringify(response.user));

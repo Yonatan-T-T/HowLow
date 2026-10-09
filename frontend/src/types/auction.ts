@@ -4,6 +4,7 @@ export interface User {
   id: number;
   username: string;
   email: string;
+  phoneNumber: string;
   balance: number;
   role: 'Admin' | 'User';
 }
@@ -18,9 +19,40 @@ export interface AuthResponse {
 export interface TestProfile {
   username: string;
   email: string;
+  phoneNumber: string;
   password: string;
   role: 'Admin' | 'User';
   balance: number;
+}
+
+export interface AgentAccount {
+  receiverPhoneNumber: string;
+  receiverName: string;
+}
+
+export interface TopUpRequest {
+  id: number;
+  userId: number;
+  username: string;
+  userEmail: string;
+  senderPhoneNumber: string;
+  receiverPhoneNumber: string;
+  receiverName: string;
+  amount: number;
+  transactionNumber: string;
+  status: 'Pending' | 'Approved' | 'Rejected';
+  createdAt: string;
+  reviewedAt?: string | null;
+  reviewedBy?: string | null;
+  adminNotes?: string | null;
+}
+
+export interface CreateTopUpPayload {
+  amount: number;
+  receiverPhoneNumber: string;
+  receiverName: string;
+  transactionNumber: string;
+  senderPhoneNumber?: string;
 }
 
 export interface AuctionItem {

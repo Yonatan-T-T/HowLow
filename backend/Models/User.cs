@@ -30,8 +30,13 @@ public class User
     [MaxLength(100)]
     public string PasswordSalt { get; set; } = string.Empty;
 
+    [Required]
+    [MaxLength(30)]
+    public string PhoneNumber { get; set; } = string.Empty;
+
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     public ICollection<AuctionRegistration> Registrations { get; set; } = new List<AuctionRegistration>();
     public ICollection<Bid> Bids { get; set; } = new List<Bid>();
+    public ICollection<TopUpRequest> TopUpRequests { get; set; } = new List<TopUpRequest>();
 }

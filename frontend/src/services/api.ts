@@ -115,8 +115,8 @@ export const api = {
     return res.data;
   },
 
-  register: async (username: string, email: string, password: string, role?: string): Promise<AuthResponse> => {
-    const res = await apiClient.post<AuthResponse>('/auth/register', { username, email, password, role });
+  register: async (username: string, email: string, phoneNumber: string, password: string, role?: string): Promise<AuthResponse> => {
+    const res = await apiClient.post<AuthResponse>('/auth/register', { username, email, phoneNumber, password, role });
     return res.data;
   },
 
@@ -127,6 +127,37 @@ export const api = {
 
   getTestProfiles: async (): Promise<TestProfile[]> => {
     const res = await apiClient.get<TestProfile[]>('/auth/test-profiles');
+    return res.data;
+  },
+
+  // Telebirr Top-Up
+  getAgentAccount: async (): Promise<import('../types/auction').AgentAccount> => {
+    const res = await apiClient.get<import('../types/auction').AgentAccount>('/topup/agent-account');
+    return res.data;
+  },
+
+  submitTopUpRequest: async (payload: import('../types/auction').CreateTopUpPayload): Promise<import('../types/auction').TopUpRequest> => {
+    const res = await apiClient.post<import('../types/auction').TopUpRequest>('/topup/request', payload);
+    return res.data;
+  },
+
+  getMyTopUpRequests: async (): Promise<import('../types/auction').TopUpRequest[]> => {
+    const res = await apiClient.get<import('../types/auction').TopUpRequest[]>('/topup/my-requests');
+    return res.data;
+  },
+
+  getAllTopUpRequestsAdmin: async (): Promise<import('../types/auction').TopUpRequest[]> => {
+    const res = await apiClient.get<import('../types/auction').TopUpRequest[]>('/topup/admin/all');
+    return res.data;
+  },
+
+  approveTopUpRequest: async (id: number): Promise<{ success: boolean; message: string; newBalance: number }> => {
+    const res = await apiClient.post(`/topup/admin/${id}/approve`);
+    return res.data;
+  },
+
+  rejectTopUpRequest: async (id: number, reason?: string): Promise<{ success: boolean; message: string }> => {
+    const res = await apiClient.post(`/topup/admin/${id}/reject`, { reason });
     return res.data;
   },
 };

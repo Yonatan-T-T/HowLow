@@ -8,19 +8,34 @@ import {
   AlertTriangle, 
   RefreshCw, 
   X, 
-  Ban
+  Ban,
+  Phone,
+  CheckCircle2,
+  XCircle,
+  Clock,
+  Copy,
+  Check
 } from 'lucide-react';
-import type { AuctionItem, AuctionAnalytics, ResolveAuctionResult } from '../types/auction';
+import type { AuctionItem, AuctionAnalytics, ResolveAuctionResult, TopUpRequest } from '../types/auction';
 import { api } from '../services/api';
 import { LiveCountdown } from '../components/LiveCountdown';
 
 export const AdminDashboard: React.FC = () => {
+  const [activeSection, setActiveSection] = useState<'auctions' | 'topups'>('auctions');
   const [auctions, setAuctions] = useState<AuctionItem[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [selectedAnalytics, setSelectedAnalytics] = useState<AuctionAnalytics | null>(null);
   const [resolvingId, setResolvingId] = useState<number | null>(null);
   const [resolutionResult, setResolutionResult] = useState<ResolveAuctionResult | null>(null);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
+
+  // Telebirr Top-Up Requests state
+  const [topUpRequests, setTopUpRequests] = useState<TopUpRequest[]>([]);
+  const [isLoadingTopUps, setIsLoadingTopUps] = useState<boolean>(false);
+  const [topUpFilter, setTopUpFilter] = useState<'All' | 'Pending' | 'Approved' | 'Rejected'>('All');
+  const [approvingId, setApprovingId] = useState<number | null>(null);
+  const [rejectingId, setRejectingId] = useState<number | null>(null);
+  const [copiedTxn, setCopiedTxn] = useState<string | null>(null);
 
   const fetchAuctions = async () => {
     try {
@@ -34,9 +49,56 @@ export const AdminDashboard: React.FC = () => {
     }
   };
 
+  const fetchTopUps = async () => {
+    try {
+      setIsLoadingTopUps(true);
+      const data = await api.getAllTopUpRequestsAdmin();
+      setTopUpRequests(data);
+    } catch (err) {
+      console.error('Failed to load topup requests:', err);
+    } finally {
+      setIsLoadingTopUps(false);
+    }
+  };
+
   useEffect(() => {
     fetchAuctions();
+    fetchTopUps();
   }, []);
+
+  const handleApproveTopUp = async (id: number) => {
+    try {
+      setApprovingId(id);
+      const res = await api.approveTopUpRequest(id);
+      setStatusMessage(res.message);
+      await fetchTopUps();
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'Failed to approve request');
+    } finally {
+      setApprovingId(null);
+    }
+  };
+
+  const handleRejectTopUp = async (id: number) => {
+    const reason = prompt("Enter rejection reason (optional):", "Transaction could not be verified on Telebirr.");
+    if (reason === null) return;
+    try {
+      setRejectingId(id);
+      const res = await api.rejectTopUpRequest(id, reason);
+      setStatusMessage(res.message);
+      await fetchTopUps();
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'Failed to reject request');
+    } finally {
+      setRejectingId(null);
+    }
+  };
+
+  const handleCopyTxn = (text: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedTxn(text);
+    setTimeout(() => setCopiedTxn(null), 2000);
+  };
 
   // Trigger Lowest Unique Bid Resolution
   const handleResolve = async (auctionId: number) => {
@@ -78,6 +140,17 @@ export const AdminDashboard: React.FC = () => {
   const activeCount = auctions.filter((a) => a.status === 'Active').length;
   const closedCount = auctions.filter((a) => a.status === 'Closed').length;
 
+  const pendingTopUps = topUpRequests.filter(r => r.status === 'Pending');
+  const approvedTopUps = topUpRequests.filter(r => r.status === 'Approved');
+  const totalTopUpETB = topUpRequests
+    .filter(r => r.status === 'Approved')
+    .reduce((acc, r) => acc + (r.amount || 0), 0);
+
+  const filteredTopUps = topUpRequests.filter(r => {
+    if (topUpFilter === 'All') return true;
+    return r.status === topUpFilter;
+  });
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
       {/* Header */}
@@ -112,7 +185,41 @@ export const AdminDashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* Admin KPI Stats */}
+      {/* Section Switcher Tabs */}
+      <div className="flex items-center gap-3 mt-6 border-b border-slate-200 dark:border-slate-800 pb-3">
+        <button
+          onClick={() => setActiveSection('auctions')}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-bold transition-all ${
+            activeSection === 'auctions'
+              ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-md'
+              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white bg-slate-100 dark:bg-slate-900/60'
+          }`}
+        >
+          <BarChart3 className="w-4 h-4" />
+          <span>Auctions &amp; Analytics ({auctions.length})</span>
+        </button>
+
+        <button
+          onClick={() => setActiveSection('topups')}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-bold transition-all ${
+            activeSection === 'topups'
+              ? 'bg-[#008FD5] text-white shadow-md'
+              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white bg-slate-100 dark:bg-slate-900/60'
+          }`}
+        >
+          <Phone className="w-4 h-4 text-emerald-400" />
+          <span>Telebirr Top-Up Approvals</span>
+          {pendingTopUps.length > 0 && (
+            <span className="px-2 py-0.5 rounded-full text-xs font-black bg-amber-500 text-white animate-pulse">
+              {pendingTopUps.length} Pending
+            </span>
+          )}
+        </button>
+      </div>
+
+      {activeSection === 'auctions' ? (
+        <>
+          {/* Admin KPI Stats */}
       <div className="mt-8 grid grid-cols-2 sm:grid-cols-4 gap-4">
         <div className="p-5 rounded-2xl bg-slate-900/60 border border-slate-800">
           <span className="text-xs uppercase font-semibold text-slate-400 block">Total Auctions</span>
@@ -297,6 +404,227 @@ export const AdminDashboard: React.FC = () => {
           </table>
         </div>
       </div>
+        </>
+      ) : (
+        /* Telebirr Top-Up Approvals Section */
+        <div className="mt-8 space-y-6 animate-fade-in">
+          {/* Top-up KPI Stats */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <div className="p-5 rounded-2xl bg-slate-900/60 border border-slate-800">
+              <span className="text-xs uppercase font-semibold text-slate-400 block">Total Requests</span>
+              <span className="text-2xl font-black font-mono text-white mt-1 block">{topUpRequests.length}</span>
+            </div>
+
+            <div className="p-5 rounded-2xl bg-slate-900/60 border border-amber-500/40">
+              <span className="text-xs uppercase font-semibold text-amber-400 block flex items-center gap-1.5">
+                <Clock className="w-3.5 h-3.5 animate-spin" />
+                <span>Pending Verification</span>
+              </span>
+              <span className="text-2xl font-black font-mono text-amber-400 mt-1 block">{pendingTopUps.length}</span>
+            </div>
+
+            <div className="p-5 rounded-2xl bg-slate-900/60 border border-emerald-500/40">
+              <span className="text-xs uppercase font-semibold text-emerald-400 block">Approved &amp; Credited</span>
+              <span className="text-2xl font-black font-mono text-emerald-400 mt-1 block">{approvedTopUps.length}</span>
+            </div>
+
+            <div className="p-5 rounded-2xl bg-slate-900/60 border border-slate-800">
+              <span className="text-xs uppercase font-semibold text-slate-400 block">Total Telebirr Volume</span>
+              <span className="text-2xl font-black font-mono text-[#008FD5] mt-1 block">
+                {totalTopUpETB.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ETB
+              </span>
+            </div>
+          </div>
+
+          {/* Filter Bar & Refresh */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2">
+            <div className="flex items-center gap-2">
+              {(['All', 'Pending', 'Approved', 'Rejected'] as const).map((filter) => (
+                <button
+                  key={filter}
+                  onClick={() => setTopUpFilter(filter)}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                    topUpFilter === filter
+                      ? 'bg-[#008FD5] text-white shadow-sm'
+                      : 'bg-slate-800 hover:bg-slate-700 text-slate-300'
+                  }`}
+                >
+                  {filter}
+                </button>
+              ))}
+            </div>
+
+            <button
+              onClick={fetchTopUps}
+              className="inline-flex items-center gap-1.5 text-xs text-[#008FD5] hover:underline"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${isLoadingTopUps ? 'animate-spin' : ''}`} />
+              <span>Refresh Top-Up Requests</span>
+            </button>
+          </div>
+
+          {/* Top-Up Requests Table */}
+          <div className="rounded-3xl bg-slate-900/60 border border-slate-800 overflow-hidden shadow-xl">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs text-slate-300">
+                <thead className="bg-slate-950/80 text-[11px] uppercase tracking-wider text-slate-400 border-b border-slate-800">
+                  <tr>
+                    <th className="py-4 px-6">User / Account</th>
+                    <th className="py-4 px-4">Sender Phone</th>
+                    <th className="py-4 px-4">Amount</th>
+                    <th className="py-4 px-4">Txn Number</th>
+                    <th className="py-4 px-4">Target Agent</th>
+                    <th className="py-4 px-4">Status &amp; Time</th>
+                    <th className="py-4 px-6 text-right">Verification Action</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-800/80">
+                  {filteredTopUps.length === 0 ? (
+                    <tr>
+                      <td colSpan={7} className="py-12 text-center text-slate-500 italic">
+                        No {topUpFilter !== 'All' ? topUpFilter.toLowerCase() : ''} Telebirr top-up requests found.
+                      </td>
+                    </tr>
+                  ) : (
+                    filteredTopUps.map((req) => {
+                      const isApproving = approvingId === req.id;
+                      const isRejecting = rejectingId === req.id;
+                      return (
+                        <tr key={req.id} className="hover:bg-slate-800/30 transition-colors">
+                          {/* User */}
+                          <td className="py-4 px-6">
+                            <div>
+                              <span className="font-bold text-white block text-sm">
+                                {req.username}
+                              </span>
+                              <span className="text-[10px] text-slate-400 font-mono">
+                                {req.userEmail}
+                              </span>
+                            </div>
+                          </td>
+
+                          {/* Sender Phone */}
+                          <td className="py-4 px-4 font-mono font-bold text-slate-200">
+                            <div className="flex items-center gap-1.5">
+                              <Phone className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                              <span>{req.senderPhoneNumber}</span>
+                            </div>
+                          </td>
+
+                          {/* Amount */}
+                          <td className="py-4 px-4 font-mono">
+                            <span className="font-black text-sm text-emerald-400 block">
+                              {req.amount.toFixed(2)} ETB
+                            </span>
+                          </td>
+
+                          {/* Txn Number with Copy */}
+                          <td className="py-4 px-4 font-mono">
+                            <div className="flex items-center gap-1.5">
+                              <span className="font-bold text-white px-2 py-0.5 rounded bg-slate-950 border border-slate-800">
+                                {req.transactionNumber}
+                              </span>
+                              <button
+                                onClick={() => handleCopyTxn(req.transactionNumber)}
+                                className="p-1 text-slate-400 hover:text-white"
+                                title="Copy Transaction Code"
+                              >
+                                {copiedTxn === req.transactionNumber ? (
+                                  <Check className="w-3.5 h-3.5 text-emerald-400" />
+                                ) : (
+                                  <Copy className="w-3.5 h-3.5" />
+                                )}
+                              </button>
+                            </div>
+                          </td>
+
+                          {/* Target Receiver Agent */}
+                          <td className="py-4 px-4">
+                            <div className="text-[11px]">
+                              <span className="font-mono font-bold text-slate-200 block">
+                                {req.receiverPhoneNumber}
+                              </span>
+                              <span className="text-[10px] text-slate-400 truncate block max-w-[120px]">
+                                {req.receiverName}
+                              </span>
+                            </div>
+                          </td>
+
+                          {/* Status & Time */}
+                          <td className="py-4 px-4">
+                            <div>
+                              <span
+                                className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase border inline-block ${
+                                  req.status === 'Approved'
+                                    ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30'
+                                    : req.status === 'Rejected'
+                                    ? 'bg-rose-500/20 text-rose-300 border-rose-500/30'
+                                    : 'bg-amber-500/20 text-amber-300 border-amber-500/30 animate-pulse'
+                                }`}
+                              >
+                                {req.status === 'Pending' ? 'Pending Verification' : req.status}
+                              </span>
+                              <span className="text-[10px] text-slate-400 block font-mono mt-0.5">
+                                {new Date(req.createdAt).toLocaleString()}
+                              </span>
+                            </div>
+                          </td>
+
+                          {/* Actions */}
+                          <td className="py-4 px-6 text-right">
+                            {req.status === 'Pending' ? (
+                              <div className="flex items-center justify-end gap-2">
+                                <button
+                                  onClick={() => handleApproveTopUp(req.id)}
+                                  disabled={isApproving || isRejecting}
+                                  className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center gap-1 shadow-md shadow-emerald-900/20 transition-all disabled:opacity-50"
+                                  title="Approve Telebirr transfer and credit user wallet"
+                                >
+                                  <CheckCircle2 className="w-3.5 h-3.5" />
+                                  <span>{isApproving ? 'Crediting...' : 'Approve & Credit'}</span>
+                                </button>
+
+                                <button
+                                  onClick={() => handleRejectTopUp(req.id)}
+                                  disabled={isApproving || isRejecting}
+                                  className="px-2.5 py-1.5 rounded-xl bg-rose-600/10 hover:bg-rose-600 text-rose-400 hover:text-white border border-rose-500/30 font-bold text-xs flex items-center gap-1 transition-all disabled:opacity-50"
+                                  title="Reject request"
+                                >
+                                  <XCircle className="w-3.5 h-3.5" />
+                                  <span>{isRejecting ? 'Rejecting...' : 'Reject'}</span>
+                                </button>
+                              </div>
+                            ) : req.status === 'Approved' ? (
+                              <div className="text-right">
+                                <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-400">
+                                  <CheckCircle2 className="w-3.5 h-3.5" />
+                                  <span>Credited (${req.amount.toFixed(2)})</span>
+                                </span>
+                              </div>
+                            ) : (
+                              <div className="text-right">
+                                <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-rose-400">
+                                  <XCircle className="w-3.5 h-3.5" />
+                                  <span>Rejected</span>
+                                </span>
+                                {req.adminNotes && (
+                                  <span className="text-[9px] text-slate-400 block truncate max-w-[120px]">
+                                    {req.adminNotes}
+                                  </span>
+                                )}
+                              </div>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* RESOLUTION RESULT MODAL */}
       {resolutionResult && (

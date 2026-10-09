@@ -9,6 +9,7 @@ public class UserDto
     public string Email { get; set; } = string.Empty;
     public decimal Balance { get; set; }
     public string Role { get; set; } = "User";
+    public string PhoneNumber { get; set; } = string.Empty;
 }
 
 public class WalletDepositDto

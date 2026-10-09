@@ -5,6 +5,7 @@ import {
   Lock,
   User,
   Mail,
+  Phone,
   Eye,
   EyeOff,
   AlertCircle,
@@ -22,6 +23,7 @@ export const SignUp: React.FC = () => {
 
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [role, setRole] = useState<"User" | "Admin">("User");
@@ -33,6 +35,8 @@ export const SignUp: React.FC = () => {
   // Validation checks
   const isUsernameValid = username.trim().length >= 3;
   const isEmailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+  const cleanPhone = phoneNumber.trim().replace(/[\s-]/g, '');
+  const isPhoneValid = /^(\+251|0)?[79]\d{8}$/.test(cleanPhone);
   const isPasswordValid = password.length >= 6;
   const doPasswordsMatch = password === confirmPassword && password.length > 0;
 
@@ -47,6 +51,10 @@ export const SignUp: React.FC = () => {
       setError("Please provide a valid email address.");
       return;
     }
+    if (!isPhoneValid) {
+      setError("Please provide a valid Ethiopian Telebirr phone number (e.g. 0912345678 or 0712345678).");
+      return;
+    }
     if (!isPasswordValid) {
       setError("Password must be at least 6 characters long.");
       return;
@@ -59,7 +67,7 @@ export const SignUp: React.FC = () => {
     try {
       setIsLoading(true);
       setError(null);
-      const res = await signup(username.trim(), email.trim(), password, role);
+      const res = await signup(username.trim(), email.trim(), cleanPhone, password, role);
       if (res.success) {
         setSuccessMsg(res.message);
         setTimeout(() => {
@@ -170,6 +178,34 @@ export const SignUp: React.FC = () => {
                 className="w-full pl-10 pr-4 py-3 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 text-slate-900 dark:text-slate-100 placeholder-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 transition-all font-medium"
               />
             </div>
+          </div>
+
+          {/* Telebirr Phone Number */}
+          <div>
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
+                Telebirr Phone Number / የስልክ ቁጥር
+              </label>
+              <span className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded">
+                Required for Top-Up
+              </span>
+            </div>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                <Phone className="w-4 h-4 text-emerald-500" />
+              </div>
+              <input
+                type="tel"
+                required
+                placeholder="09XXXXXXXX or 07XXXXXXXX"
+                value={phoneNumber}
+                onChange={(e) => setPhoneNumber(e.target.value)}
+                className="w-full pl-10 pr-4 py-3 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 text-slate-900 dark:text-slate-100 placeholder-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 transition-all font-medium font-mono"
+              />
+            </div>
+            <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
+              Used when transferring funds via Telebirr mobile money for wallet deposits and approval.
+            </p>
           </div>
 
           {/* Password */}
