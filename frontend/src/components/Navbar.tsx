@@ -31,6 +31,7 @@ export const Navbar: React.FC = () => {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isDemoMenuOpen, setIsDemoMenuOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isMobileDemoOpen, setIsMobileDemoOpen] = useState(false);
 
   const isAdmin = currentUser?.role === "Admin";
 
@@ -41,16 +42,21 @@ export const Navbar: React.FC = () => {
     navigate("/");
   };
 
+  const handleMobileQuickLogin = (tp: any) => {
+    quickLoginAs(tp);
+    setIsMobileMenuOpen(false);
+  };
+
   return (
     <>
       <header className="sticky top-0 z-40 w-full border-b border-slate-800/80 bg-slate-950/80 backdrop-blur-xl transition-all">
-        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between gap-2 sm:gap-4">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between gap-1.5 sm:gap-4">
           {/* Brand Logo */}
           <Link
             to="/"
-            className="flex items-center gap-2 sm:gap-2.5 group shrink-0 min-w-0"
+            className="flex items-center gap-1.5 sm:gap-2.5 group shrink-0 min-w-0"
           >
-            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-400 flex items-center justify-center shadow-lg shadow-emerald-500/20 group-hover:scale-105 transition-transform duration-300 shrink-0">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-400 flex items-center justify-center shadow-lg shadow-emerald-500/20 group-hover:scale-105 transition-transform duration-300 shrink-0">
               <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
             </div>
             <div className="min-w-0">
@@ -58,7 +64,7 @@ export const Navbar: React.FC = () => {
                 <span className="text-base sm:text-lg font-black tracking-tight text-white group-hover:text-emerald-400 transition-colors">
                   Unique<span className="text-emerald-400">Low</span>
                 </span>
-                <span className="hidden min-[400px]:inline-block text-[9px] sm:text-[10px] uppercase font-bold tracking-widest px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                <span className="hidden sm:inline-block text-[9px] sm:text-[10px] uppercase font-bold tracking-widest px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
                   Auction
                 </span>
               </div>
@@ -108,11 +114,11 @@ export const Navbar: React.FC = () => {
           </nav>
 
           {/* Right Action Area */}
-          <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
+          <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
             {/* Wallet Balance Pill (Only for logged-in standard bidders) */}
             {currentUser && !isAdmin && (
-              <div className="flex items-center bg-slate-900/90 border border-slate-800 rounded-xl sm:rounded-2xl p-1 pl-2.5 sm:pl-3 shadow-inner shrink-0">
-                <div className="flex items-center gap-1 sm:gap-1.5 mr-1.5 sm:mr-2">
+              <div className="flex items-center bg-slate-900/90 border border-slate-800 rounded-xl sm:rounded-2xl p-1 pl-2 sm:pl-3 shadow-inner shrink-0">
+                <div className="flex items-center gap-1 sm:gap-1.5 mr-1 sm:mr-2">
                   <Wallet className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
                   <span className="font-mono text-xs font-bold text-white whitespace-nowrap">
                     ${currentUser.balance.toFixed(2)}
@@ -120,7 +126,7 @@ export const Navbar: React.FC = () => {
                 </div>
                 <button
                   onClick={openTopUp}
-                  title="Quick Deposit (Demo)"
+                  title="Quick Deposit"
                   className="p-1 sm:p-1.5 rounded-lg sm:rounded-xl bg-emerald-600/20 hover:bg-emerald-600/40 text-emerald-300 border border-emerald-500/30 transition-colors shrink-0"
                 >
                   <Plus className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
@@ -130,17 +136,16 @@ export const Navbar: React.FC = () => {
 
             {/* If NOT logged in: Show Log In, Sign Up, and Quick Demo Accounts */}
             {!currentUser ? (
-              <div className="flex items-center gap-1.5 sm:gap-2">
-                {/* Demo Accounts Quick Dropdown */}
-                <div className="relative">
+              <div className="flex items-center gap-1 sm:gap-2">
+                {/* Demo Accounts Quick Dropdown (Hidden on small mobile screens to prevent overflow, accessible in mobile menu) */}
+                <div className="relative hidden sm:block">
                   <button
                     onClick={() => setIsDemoMenuOpen(!isDemoMenuOpen)}
                     className="flex items-center gap-1.5 px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl sm:rounded-2xl bg-slate-900/90 border border-amber-500/30 text-amber-300 hover:bg-amber-500/10 text-xs font-bold transition-all"
                     title="Quick Test Accounts (2 Admins, 5 Users)"
                   >
                     <Zap className="w-3.5 h-3.5 text-amber-400" />
-                    <span className="hidden sm:inline">Test Accounts</span>
-                    <span className="sm:hidden">Demo</span>
+                    <span>Test Accounts</span>
                     <ChevronDown className="w-3 h-3 text-amber-400/80" />
                   </button>
 
@@ -207,7 +212,7 @@ export const Navbar: React.FC = () => {
 
                 <Link
                   to="/login"
-                  className="px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl sm:rounded-2xl text-xs font-bold text-slate-200 hover:text-white bg-slate-900 border border-slate-800 hover:border-slate-700 transition-all flex items-center gap-1.5"
+                  className="px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl sm:rounded-2xl text-xs font-bold text-slate-200 hover:text-white bg-slate-900 border border-slate-800 hover:border-slate-700 transition-all flex items-center gap-1 shrink-0"
                 >
                   <LogIn className="w-3.5 h-3.5 text-slate-400" />
                   <span>Log In</span>
@@ -215,11 +220,10 @@ export const Navbar: React.FC = () => {
 
                 <Link
                   to="/signup"
-                  className="px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl sm:rounded-2xl text-xs font-bold text-white bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 shadow-md shadow-emerald-500/20 transition-all flex items-center gap-1.5"
+                  className="px-2.5 py-1.5 sm:px-3.5 sm:py-2 rounded-xl sm:rounded-2xl text-xs font-bold text-white bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 shadow-sm sm:shadow-md shadow-emerald-500/20 transition-all flex items-center gap-1 shrink-0"
                 >
                   <UserPlus className="w-3.5 h-3.5" />
-                  <span className="hidden sm:inline">Sign Up</span>
-                  <span className="sm:hidden">Join</span>
+                  <span>Sign Up</span>
                 </Link>
               </div>
             ) : (
@@ -367,7 +371,7 @@ export const Navbar: React.FC = () => {
             {/* Mobile Menu Trigger */}
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="md:hidden p-1.5 sm:p-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-400 hover:text-white shrink-0"
+              className="md:hidden p-1.5 sm:p-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-400 hover:text-white shrink-0 ml-0.5"
               aria-label="Toggle menu"
             >
               {isMobileMenuOpen ? (
@@ -379,29 +383,31 @@ export const Navbar: React.FC = () => {
           </div>
         </div>
 
-        {/* Mobile Dropdown */}
+        {/* Mobile Dropdown Drawer */}
         {isMobileMenuOpen && (
-          <div className="md:hidden border-t border-slate-800 px-4 py-4 space-y-2 bg-slate-950 animate-fade-in">
-            <Link
-              to="/"
-              onClick={() => setIsMobileMenuOpen(false)}
-              className="block px-3 py-2 rounded-xl text-sm font-semibold text-slate-200 hover:bg-slate-900"
-            >
-              Live Auctions
-            </Link>
-            <button
-              onClick={() => {
-                setIsMobileMenuOpen(false);
-                setIsHowItWorksOpen(true);
-              }}
-              className="w-full text-left px-3 py-2 rounded-xl text-sm font-semibold text-slate-200 hover:bg-slate-900 flex items-center gap-2"
-            >
-              <HelpCircle className="w-4 h-4 text-emerald-400" />
-              <span>How It Works</span>
-            </button>
+          <div className="md:hidden border-t border-slate-800 px-4 py-4 space-y-3 bg-slate-950/95 backdrop-blur-xl animate-fade-in shadow-2xl">
+            <div className="space-y-1">
+              <Link
+                to="/"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="block px-3 py-2 rounded-xl text-sm font-semibold text-slate-200 hover:bg-slate-900"
+              >
+                Live Auctions
+              </Link>
+              <button
+                onClick={() => {
+                  setIsMobileMenuOpen(false);
+                  setIsHowItWorksOpen(true);
+                }}
+                className="w-full text-left px-3 py-2 rounded-xl text-sm font-semibold text-slate-200 hover:bg-slate-900 flex items-center gap-2"
+              >
+                <HelpCircle className="w-4 h-4 text-emerald-400" />
+                <span>How It Works</span>
+              </button>
+            </div>
 
             {currentUser ? (
-              <>
+              <div className="pt-2 border-t border-slate-800 space-y-2">
                 {isAdmin && (
                   <Link
                     to="/admin"
@@ -419,23 +425,81 @@ export const Navbar: React.FC = () => {
                   <LogOut className="w-4 h-4" />
                   <span>Sign Out ({currentUser.username})</span>
                 </button>
-              </>
+              </div>
             ) : (
               <div className="pt-2 border-t border-slate-800 space-y-2">
-                <Link
-                  to="/login"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="block w-full py-2 px-3 rounded-xl text-center text-sm font-bold bg-slate-900 border border-slate-800 text-white"
-                >
-                  Log In
-                </Link>
-                <Link
-                  to="/signup"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="block w-full py-2 px-3 rounded-xl text-center text-sm font-bold bg-emerald-600 text-white"
-                >
-                  Sign Up &amp; get $100.00
-                </Link>
+                <div className="grid grid-cols-2 gap-2">
+                  <Link
+                    to="/login"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="py-2.5 px-3 rounded-xl text-center text-xs font-bold bg-slate-900 border border-slate-800 text-white flex items-center justify-center gap-1.5"
+                  >
+                    <LogIn className="w-3.5 h-3.5 text-slate-400" />
+                    <span>Log In</span>
+                  </Link>
+                  <Link
+                    to="/signup"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="py-2.5 px-3 rounded-xl text-center text-xs font-bold bg-emerald-600 text-white flex items-center justify-center gap-1.5 shadow-md shadow-emerald-950"
+                  >
+                    <UserPlus className="w-3.5 h-3.5" />
+                    <span>Sign Up</span>
+                  </Link>
+                </div>
+
+                {/* Mobile Quick Test Accounts Accordion */}
+                <div className="pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setIsMobileDemoOpen(!isMobileDemoOpen)}
+                    className="w-full flex items-center justify-between p-2.5 rounded-xl bg-slate-900/90 border border-amber-500/30 text-amber-300 text-xs font-bold"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Zap className="w-3.5 h-3.5 text-amber-400" />
+                      <span>1-Click Test Accounts ({testProfiles.length})</span>
+                    </div>
+                    <ChevronDown className={`w-3.5 h-3.5 transition-transform ${isMobileDemoOpen ? 'rotate-180' : ''}`} />
+                  </button>
+
+                  {isMobileDemoOpen && (
+                    <div className="mt-2 space-y-1.5 p-2 rounded-xl bg-slate-900 border border-slate-800 max-h-52 overflow-y-auto">
+                      {testProfiles.map((tp) => (
+                        <button
+                          key={tp.username}
+                          onClick={() => handleMobileQuickLogin(tp)}
+                          className="w-full flex items-center justify-between p-2 rounded-lg hover:bg-slate-800 transition-colors text-left"
+                        >
+                          <div className="flex items-center gap-2 min-w-0">
+                            <div
+                              className={`w-6 h-6 rounded-md flex items-center justify-center text-[10px] font-black text-white shrink-0 ${
+                                tp.role === "Admin" ? "bg-amber-500" : "bg-emerald-500"
+                              }`}
+                            >
+                              {tp.username.charAt(0).toUpperCase()}
+                            </div>
+                            <div className="truncate">
+                              <span className="text-xs font-bold text-white block truncate">
+                                {tp.username}
+                              </span>
+                              <span className="text-[9px] text-slate-400 font-mono">
+                                pw: {tp.password}
+                              </span>
+                            </div>
+                          </div>
+                          <span
+                            className={`text-[9px] uppercase font-bold px-1.5 py-0.5 rounded border shrink-0 ml-2 ${
+                              tp.role === "Admin"
+                                ? "bg-amber-500/20 text-amber-300 border-amber-500/30"
+                                : "bg-emerald-500/20 text-emerald-300 border-emerald-500/30"
+                            }`}
+                          >
+                            {tp.role}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
             )}
 
