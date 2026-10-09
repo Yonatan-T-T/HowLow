@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using UniqueLow.Api.Models;
+using UniqueLow.Api.Services;
 
 namespace UniqueLow.Api.Data;
 
@@ -9,58 +10,146 @@ public static class DbInitializer
     {
         await context.Database.EnsureCreatedAsync();
 
+        // Check if database needs seeding or updating with passwords
         if (await context.Users.AnyAsync())
         {
-            return; // DB already seeded
+            // If existing users have empty password hashes, populate them
+            var usersWithoutPassword = await context.Users
+                .Where(u => string.IsNullOrEmpty(u.PasswordHash))
+                .ToListAsync();
+
+            if (usersWithoutPassword.Any())
+            {
+                foreach (var user in usersWithoutPassword)
+                {
+                    string defaultPass = user.Role == "Admin" ? "AdminPassword123!" : "UserPassword123!";
+                    PasswordHasher.CreatePasswordHash(defaultPass, out string hash, out string salt);
+                    user.PasswordHash = hash;
+                    user.PasswordSalt = salt;
+                }
+                await context.SaveChangesAsync();
+            }
+
+            // Ensure 2 Admins exist
+            if (!await context.Users.AnyAsync(u => u.Username.ToLower() == "admin2"))
+            {
+                PasswordHasher.CreatePasswordHash("AdminPassword123!", out string h2, out string s2);
+                context.Users.Add(new User
+                {
+                    Username = "admin2",
+                    Email = "admin2@uniquelow.com",
+                    Balance = 1000.00m,
+                    Role = "Admin",
+                    PasswordHash = h2,
+                    PasswordSalt = s2,
+                    CreatedAt = DateTime.UtcNow
+                });
+                await context.SaveChangesAsync();
+            }
+
+            // Ensure 5 Users exist (e.g. fiona)
+            if (!await context.Users.AnyAsync(u => u.Username.ToLower() == "fiona"))
+            {
+                PasswordHasher.CreatePasswordHash("UserPassword123!", out string hf, out string sf);
+                context.Users.Add(new User
+                {
+                    Username = "fiona",
+                    Email = "fiona@example.com",
+                    Balance = 300.00m,
+                    Role = "User",
+                    PasswordHash = hf,
+                    PasswordSalt = sf,
+                    CreatedAt = DateTime.UtcNow
+                });
+                await context.SaveChangesAsync();
+            }
+
+            return; // DB already initialized
         }
 
-        // 1. Seed Users
-        var admin = new User
+        // 1. Seed 2 Admins and 5 Users
+        PasswordHasher.CreatePasswordHash("AdminPassword123!", out string admin1Hash, out string admin1Salt);
+        var admin1 = new User
         {
-            Username = "Alice (Admin)",
-            Email = "admin@uniquelow.com",
-            Balance = 500.00m,
+            Username = "admin1",
+            Email = "admin1@uniquelow.com",
+            Balance = 1000.00m,
             Role = "Admin",
+            PasswordHash = admin1Hash,
+            PasswordSalt = admin1Salt,
             CreatedAt = DateTime.UtcNow
         };
 
+        PasswordHasher.CreatePasswordHash("AdminPassword123!", out string admin2Hash, out string admin2Salt);
+        var admin2 = new User
+        {
+            Username = "admin2",
+            Email = "admin2@uniquelow.com",
+            Balance = 1000.00m,
+            Role = "Admin",
+            PasswordHash = admin2Hash,
+            PasswordSalt = admin2Salt,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        PasswordHasher.CreatePasswordHash("UserPassword123!", out string userPassHash, out string userPassSalt);
+
         var bob = new User
         {
-            Username = "Bob",
+            Username = "bob",
             Email = "bob@example.com",
-            Balance = 150.00m,
+            Balance = 250.00m,
             Role = "User",
+            PasswordHash = userPassHash,
+            PasswordSalt = userPassSalt,
             CreatedAt = DateTime.UtcNow
         };
 
         var charlie = new User
         {
-            Username = "Charlie",
+            Username = "charlie",
             Email = "charlie@example.com",
-            Balance = 95.00m,
+            Balance = 180.00m,
             Role = "User",
+            PasswordHash = userPassHash,
+            PasswordSalt = userPassSalt,
             CreatedAt = DateTime.UtcNow
         };
 
         var diana = new User
         {
-            Username = "Diana",
+            Username = "diana",
             Email = "diana@example.com",
-            Balance = 130.00m,
+            Balance = 220.00m,
             Role = "User",
+            PasswordHash = userPassHash,
+            PasswordSalt = userPassSalt,
             CreatedAt = DateTime.UtcNow
         };
 
         var evan = new User
         {
-            Username = "Evan",
+            Username = "evan",
             Email = "evan@example.com",
-            Balance = 75.00m,
+            Balance = 150.00m,
             Role = "User",
+            PasswordHash = userPassHash,
+            PasswordSalt = userPassSalt,
             CreatedAt = DateTime.UtcNow
         };
 
-        context.Users.AddRange(admin, bob, charlie, diana, evan);
+        var fiona = new User
+        {
+            Username = "fiona",
+            Email = "fiona@example.com",
+            Balance = 300.00m,
+            Role = "User",
+            PasswordHash = userPassHash,
+            PasswordSalt = userPassSalt,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        context.Users.AddRange(admin1, admin2, bob, charlie, diana, evan, fiona);
         await context.SaveChangesAsync();
 
         // 2. Seed Auctions
@@ -145,16 +234,18 @@ public static class DbInitializer
         context.AuctionItems.AddRange(iphoneAuction, ps5Auction, macbookAuction, rolexAuction, boseAuction, dysonAuction);
         await context.SaveChangesAsync();
 
-        // 3. Seed Registrations for iPhone auction
+        // 3. Seed Registrations for iPhone & PS5 auctions
         context.AuctionRegistrations.AddRange(
             new AuctionRegistration { AuctionItemId = iphoneAuction.Id, UserId = bob.Id, FeePaid = 5.00m, RegisteredAt = now.AddHours(-5) },
             new AuctionRegistration { AuctionItemId = iphoneAuction.Id, UserId = charlie.Id, FeePaid = 5.00m, RegisteredAt = now.AddHours(-4) },
             new AuctionRegistration { AuctionItemId = iphoneAuction.Id, UserId = diana.Id, FeePaid = 5.00m, RegisteredAt = now.AddHours(-3) },
             new AuctionRegistration { AuctionItemId = iphoneAuction.Id, UserId = evan.Id, FeePaid = 5.00m, RegisteredAt = now.AddHours(-2) },
+            new AuctionRegistration { AuctionItemId = iphoneAuction.Id, UserId = fiona.Id, FeePaid = 5.00m, RegisteredAt = now.AddHours(-1) },
             
             // PS5 registrations
             new AuctionRegistration { AuctionItemId = ps5Auction.Id, UserId = bob.Id, FeePaid = 3.50m, RegisteredAt = now.AddHours(-1) },
             new AuctionRegistration { AuctionItemId = ps5Auction.Id, UserId = charlie.Id, FeePaid = 3.50m, RegisteredAt = now.AddMinutes(-30) },
+            new AuctionRegistration { AuctionItemId = ps5Auction.Id, UserId = fiona.Id, FeePaid = 3.50m, RegisteredAt = now.AddMinutes(-20) },
 
             // Closed auctions historical registrations
             new AuctionRegistration { AuctionItemId = boseAuction.Id, UserId = bob.Id, FeePaid = 2.50m, RegisteredAt = now.AddDays(-1) },
@@ -164,21 +255,18 @@ public static class DbInitializer
         await context.SaveChangesAsync();
 
         // 4. Seed Bids for iPhone auction
-        // Notice: Bob ($0.05) and Charlie ($0.05) are duplicate.
-        // Diana bids $0.12 (unique, lowest).
-        // Evan bids $0.45 (unique, but higher).
-        // Bob bids $1.20 (unique).
         context.Bids.AddRange(
             new Bid { AuctionItemId = iphoneAuction.Id, UserId = bob.Id, Amount = 0.05m, PlacedAt = now.AddHours(-4) },
             new Bid { AuctionItemId = iphoneAuction.Id, UserId = charlie.Id, Amount = 0.05m, PlacedAt = now.AddHours(-3).AddMinutes(15) },
             new Bid { AuctionItemId = iphoneAuction.Id, UserId = diana.Id, Amount = 0.12m, PlacedAt = now.AddHours(-2).AddMinutes(40) },
             new Bid { AuctionItemId = iphoneAuction.Id, UserId = evan.Id, Amount = 0.45m, PlacedAt = now.AddHours(-1).AddMinutes(10) },
             new Bid { AuctionItemId = iphoneAuction.Id, UserId = bob.Id, Amount = 1.20m, PlacedAt = now.AddMinutes(-35) },
+            new Bid { AuctionItemId = iphoneAuction.Id, UserId = fiona.Id, Amount = 0.88m, PlacedAt = now.AddMinutes(-15) },
 
             // Closed Bose bids
             new Bid { AuctionItemId = boseAuction.Id, UserId = diana.Id, Amount = 0.15m, PlacedAt = now.AddHours(-4) },
-            new Bid { AuctionItemId = boseAuction.Id, UserId = evan.Id, Amount = 0.15m, PlacedAt = now.AddHours(-4).AddMinutes(5) }, // duplicate 0.15
-            new Bid { AuctionItemId = boseAuction.Id, UserId = bob.Id, Amount = 0.23m, PlacedAt = now.AddHours(-3).AddMinutes(30) }, // lowest unique!
+            new Bid { AuctionItemId = boseAuction.Id, UserId = evan.Id, Amount = 0.15m, PlacedAt = now.AddHours(-4).AddMinutes(5) },
+            new Bid { AuctionItemId = boseAuction.Id, UserId = bob.Id, Amount = 0.23m, PlacedAt = now.AddHours(-3).AddMinutes(30) },
 
             // Closed Dyson bids
             new Bid { AuctionItemId = dysonAuction.Id, UserId = diana.Id, Amount = 1.14m, PlacedAt = now.AddHours(-11) }

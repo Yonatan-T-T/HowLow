@@ -414,7 +414,34 @@ export const AuctionDetailBid: React.FC = () => {
             {/* REGISTRATION & BIDDING INTERFACES (If Active) */}
             {isActive && (
               <div className="mt-6">
-                {isAdmin ? (
+                {!currentUser ? (
+                  /* Guest / Unauthenticated Mode: Prompt to Sign In */
+                  <div className="p-6 sm:p-8 rounded-2xl bg-slate-950/70 border border-slate-800 text-center">
+                    <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto mb-3 shadow-lg shadow-emerald-500/10">
+                      <Coins className="w-6 h-6" />
+                    </div>
+                    <h4 className="text-base font-bold text-white mb-1">
+                      Log In to Participate in this Auction
+                    </h4>
+                    <p className="text-xs text-slate-400 mb-5 max-w-md mx-auto">
+                      Sign in or create a free bidder account ($100 starting bonus included) to register and place secret lowest-unique bids.
+                    </p>
+                    <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+                      <Link
+                        to="/login"
+                        className="w-full sm:w-auto py-2.5 px-6 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition-all shadow-md shadow-emerald-900/30"
+                      >
+                        Sign In to Bid
+                      </Link>
+                      <Link
+                        to="/signup"
+                        className="w-full sm:w-auto py-2.5 px-6 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs border border-slate-700 transition-colors"
+                      >
+                        Create Account &amp; Get $100
+                      </Link>
+                    </div>
+                  </div>
+                ) : isAdmin ? (
                   /* Admin Viewing Mode: Bidding Prohibited */
                   <div className="p-6 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-200">
                     <div className="flex items-start sm:items-center gap-3">
@@ -436,7 +463,7 @@ export const AuctionDetailBid: React.FC = () => {
 
                     <div className="mt-5 pt-4 border-t border-amber-500/20 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
                       <span className="text-slate-400">
-                        To test bidding, switch to a standard bidder persona (e.g. Alice or Bob) via the top-right persona switcher.
+                        To test bidding, switch to a standard bidder persona (e.g. Bob or Charlie) via the top-right persona switcher.
                       </span>
                       <Link
                         to="/admin"

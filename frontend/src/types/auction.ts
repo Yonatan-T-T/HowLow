@@ -8,6 +8,21 @@ export interface User {
   role: 'Admin' | 'User';
 }
 
+export interface AuthResponse {
+  success: boolean;
+  message: string;
+  token: string;
+  user?: User;
+}
+
+export interface TestProfile {
+  username: string;
+  email: string;
+  password: string;
+  role: 'Admin' | 'User';
+  balance: number;
+}
+
 export interface AuctionItem {
   id: number;
   title: string;

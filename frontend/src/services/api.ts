@@ -5,7 +5,9 @@ import type {
   AuctionAnalytics, 
   ResolveAuctionResult, 
   User, 
-  Bid 
+  Bid,
+  AuthResponse,
+  TestProfile
 } from '../types/auction';
 
 const rawBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:5223/api';
@@ -20,8 +22,13 @@ export const apiClient = axios.create({
   },
 });
 
-// Interceptor to automatically attach X-User-Id header from current active user
+// Interceptor to automatically attach X-User-Id and Authorization headers from current session
 apiClient.interceptors.request.use((config) => {
+  const token = localStorage.getItem('unique_low_token');
+  if (token) {
+    config.headers['Authorization'] = `Bearer ${token}`;
+  }
+
   const storedUser = localStorage.getItem('unique_low_user');
   if (storedUser) {
     try {
@@ -99,6 +106,27 @@ export const api = {
 
   depositFunds: async (userId: number, amount: number): Promise<{ success: boolean; message: string; balance: number }> => {
     const res = await apiClient.post(`/users/${userId}/deposit`, { amount });
+    return res.data;
+  },
+
+  // Authentication & Test Profiles
+  login: async (usernameOrEmail: string, password: string): Promise<AuthResponse> => {
+    const res = await apiClient.post<AuthResponse>('/auth/login', { usernameOrEmail, password });
+    return res.data;
+  },
+
+  register: async (username: string, email: string, password: string, role?: string): Promise<AuthResponse> => {
+    const res = await apiClient.post<AuthResponse>('/auth/register', { username, email, password, role });
+    return res.data;
+  },
+
+  getMe: async (): Promise<User> => {
+    const res = await apiClient.get<User>('/auth/me');
+    return res.data;
+  },
+
+  getTestProfiles: async (): Promise<TestProfile[]> => {
+    const res = await apiClient.get<TestProfile[]>('/auth/test-profiles');
     return res.data;
   },
 };

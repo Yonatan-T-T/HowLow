@@ -24,6 +24,12 @@ public class User
     [MaxLength(50)]
     public string Role { get; set; } = "User"; // "Admin" or "User"
 
+    [MaxLength(200)]
+    public string PasswordHash { get; set; } = string.Empty;
+
+    [MaxLength(100)]
+    public string PasswordSalt { get; set; } = string.Empty;
+
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     public ICollection<AuctionRegistration> Registrations { get; set; } = new List<AuctionRegistration>();
