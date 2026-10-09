@@ -12,7 +12,8 @@ import {
   Sparkles, 
   Coins, 
   RefreshCw,
-  ShieldAlert
+  ShieldAlert,
+  Lock
 } from 'lucide-react';
 import type { AuctionItem, Bid } from '../types/auction';
 import { api } from '../services/api';
@@ -125,6 +126,14 @@ export const AuctionDetailBid: React.FC = () => {
       return;
     }
 
+    if (myBids.length > 0 || (auction.userBidsCount && auction.userBidsCount > 0)) {
+      setNotification({
+        type: 'error',
+        message: 'You have already placed your bid for this auction. Each registered bidder is limited to 1 bid per auction.',
+      });
+      return;
+    }
+
     const amountNum = parseFloat(bidAmount);
     if (isNaN(amountNum) || amountNum <= 0) {
       setNotification({
@@ -141,7 +150,7 @@ export const AuctionDetailBid: React.FC = () => {
       if (res.success) {
         setNotification({
           type: 'success',
-          message: `Secret blind bid of $${amountNum.toFixed(2)} successfully placed!`,
+          message: `Secret bid of $${amountNum.toFixed(2)} placed!`,
         });
         setBidAmount('');
         await fetchAuctionDetails();
@@ -159,8 +168,8 @@ export const AuctionDetailBid: React.FC = () => {
   if (isLoading && !auction) {
     return (
       <div className="max-w-6xl mx-auto px-4 py-20 text-center">
-        <RefreshCw className="w-8 h-8 text-emerald-400 animate-spin mx-auto mb-4" />
-        <p className="text-slate-400 text-sm">Loading auction details...</p>
+        <RefreshCw className="w-8 h-8 text-emerald-500 dark:text-emerald-400 animate-spin mx-auto mb-4" />
+        <p className="text-slate-600 dark:text-slate-400 text-sm">Loading auction details...</p>
       </div>
     );
   }
@@ -168,11 +177,11 @@ export const AuctionDetailBid: React.FC = () => {
   if (!auction) {
     return (
       <div className="max-w-xl mx-auto px-4 py-24 text-center">
-        <h2 className="text-2xl font-bold text-white">Auction Not Found</h2>
-        <p className="text-slate-400 text-sm mt-2">The auction you are looking for does not exist or was removed.</p>
+        <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Auction Not Found</h2>
+        <p className="text-slate-600 dark:text-slate-400 text-sm mt-2">The auction you are looking for does not exist or was removed.</p>
         <Link
           to="/"
-          className="mt-6 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-600 text-white font-semibold text-xs"
+          className="mt-6 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs transition-colors"
         >
           <ArrowLeft className="w-4 h-4" /> Back to Live Auctions
         </Link>
@@ -200,7 +209,7 @@ export const AuctionDetailBid: React.FC = () => {
       <div className="mb-6">
         <Link
           to="/"
-          className="inline-flex items-center gap-2 text-xs font-semibold text-slate-400 hover:text-white transition-colors"
+          className="inline-flex items-center gap-2 text-xs font-semibold text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
           <span>Back to Catalog</span>
@@ -212,7 +221,7 @@ export const AuctionDetailBid: React.FC = () => {
         
         {/* Left Column (5 cols): Media & Product Information */}
         <div className="lg:col-span-5 space-y-6">
-          <div className="relative aspect-[4/3] rounded-3xl overflow-hidden bg-slate-900 border border-slate-800 shadow-xl">
+          <div className="relative aspect-[4/3] rounded-3xl overflow-hidden bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl">
             <img
               src={auction.imageUrl}
               alt={auction.title}
@@ -222,16 +231,16 @@ export const AuctionDetailBid: React.FC = () => {
                   'https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=800&q=80';
               }}
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-transparent to-transparent" />
 
             {/* Badges on Image */}
             <div className="absolute top-4 left-4 right-4 flex items-center justify-between">
-              <span className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-slate-900/80 text-emerald-400 border border-emerald-500/30 backdrop-blur-md">
+              <span className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-white/90 dark:bg-slate-900/80 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30 backdrop-blur-md shadow-sm">
                 Retail ${auction.retailValue.toLocaleString()}
               </span>
 
               {auction.isUserRegistered && (
-                <span className="px-3 py-1 rounded-full text-xs font-semibold bg-emerald-600 text-white flex items-center gap-1 shadow-lg shadow-emerald-950/50">
+                <span className="px-3 py-1 rounded-full text-xs font-semibold bg-emerald-600 text-white flex items-center gap-1 shadow-md">
                   <CheckCircle2 className="w-3.5 h-3.5" /> Registered
                 </span>
               )}
@@ -239,41 +248,41 @@ export const AuctionDetailBid: React.FC = () => {
           </div>
 
           {/* Title & Description Box */}
-          <div className="p-6 rounded-3xl bg-slate-900/60 border border-slate-800 backdrop-blur-sm">
-            <h1 className="text-xl sm:text-2xl font-black text-white leading-snug">
+          <div className="p-6 rounded-3xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 shadow-sm backdrop-blur-sm">
+            <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white leading-snug">
               {auction.title}
             </h1>
-            <p className="mt-3 text-xs sm:text-sm text-slate-300 leading-relaxed">
+            <p className="mt-3 text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
               {auction.description}
             </p>
 
             {/* Quick Metrics */}
-            <div className="mt-6 pt-6 border-t border-slate-800/80 grid grid-cols-3 gap-2 text-center">
-              <div className="p-2.5 rounded-2xl bg-slate-950/50 border border-slate-800/60">
-                <span className="text-[10px] uppercase font-semibold text-slate-400 block">Entry Fee</span>
-                <span className="font-mono font-bold text-white text-sm">
+            <div className="mt-6 pt-6 border-t border-slate-200 dark:border-slate-800/80 grid grid-cols-3 gap-2 text-center">
+              <div className="p-2.5 rounded-2xl bg-slate-50 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800/60">
+                <span className="text-[10px] uppercase font-semibold text-slate-500 dark:text-slate-400 block">Entry Fee</span>
+                <span className="font-mono font-bold text-slate-900 dark:text-white text-sm">
                   ${auction.registrationFee.toFixed(2)}
                 </span>
               </div>
 
-              <div className="p-2.5 rounded-2xl bg-slate-950/50 border border-slate-800/60">
-                <span className="text-[10px] uppercase font-semibold text-slate-400 block">Bidders</span>
-                <span className="font-mono font-bold text-white text-sm">
+              <div className="p-2.5 rounded-2xl bg-slate-50 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800/60">
+                <span className="text-[10px] uppercase font-semibold text-slate-500 dark:text-slate-400 block">Bidders</span>
+                <span className="font-mono font-bold text-slate-900 dark:text-white text-sm">
                   {auction.totalRegistrations}
                 </span>
               </div>
 
-              <div className="p-2.5 rounded-2xl bg-slate-950/50 border border-slate-800/60">
-                <span className="text-[10px] uppercase font-semibold text-slate-400 block">Total Bids</span>
-                <span className="font-mono font-bold text-white text-sm">
+              <div className="p-2.5 rounded-2xl bg-slate-50 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800/60">
+                <span className="text-[10px] uppercase font-semibold text-slate-500 dark:text-slate-400 block">Total Bids</span>
+                <span className="font-mono font-bold text-slate-900 dark:text-white text-sm">
                   {auction.totalBids}
                 </span>
               </div>
             </div>
 
             {/* Fair Play Transparency Note */}
-            <div className="mt-5 p-3.5 rounded-2xl bg-indigo-950/30 border border-indigo-800/40 flex items-start gap-2.5 text-xs text-indigo-200">
-              <EyeOff className="w-4 h-4 text-indigo-400 shrink-0 mt-0.5" />
+            <div className="mt-5 p-3.5 rounded-2xl bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-200 dark:border-indigo-800/40 flex items-start gap-2.5 text-xs text-indigo-900 dark:text-indigo-200">
+              <EyeOff className="w-4 h-4 text-indigo-600 dark:text-indigo-400 shrink-0 mt-0.5" />
               <span>
                 <strong>Blind Bidding Privacy:</strong> All bids are encrypted and blind until auction resolution. No competitor can see your bids.
               </span>
@@ -289,15 +298,15 @@ export const AuctionDetailBid: React.FC = () => {
             <div
               className={`p-4 rounded-2xl border text-xs sm:text-sm flex items-center justify-between gap-3 animate-fade-in ${
                 notification.type === 'success'
-                  ? 'bg-emerald-950/50 border-emerald-500/50 text-emerald-300'
-                  : 'bg-rose-950/50 border-rose-500/50 text-rose-300'
+                  ? 'bg-emerald-50 dark:bg-emerald-950/50 border-emerald-300 dark:border-emerald-500/50 text-emerald-800 dark:text-emerald-300'
+                  : 'bg-rose-50 dark:bg-rose-950/50 border-rose-300 dark:border-rose-500/50 text-rose-800 dark:text-rose-300'
               }`}
             >
               <div className="flex items-center gap-2.5">
                 {notification.type === 'success' ? (
-                  <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
+                  <CheckCircle2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400 shrink-0" />
                 ) : (
-                  <AlertCircle className="w-5 h-5 text-rose-400 shrink-0" />
+                  <AlertCircle className="w-5 h-5 text-rose-600 dark:text-rose-400 shrink-0" />
                 )}
                 <span>{notification.message}</span>
               </div>
@@ -311,32 +320,32 @@ export const AuctionDetailBid: React.FC = () => {
           )}
 
           {/* Countdown & Auction State Card */}
-          <div className="p-6 sm:p-7 rounded-3xl bg-slate-900/80 border border-slate-800 shadow-xl">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-800/80">
+          <div className="p-6 sm:p-7 rounded-3xl bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 shadow-sm dark:shadow-xl">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-200 dark:border-slate-800/80">
               <div>
-                <span className="text-xs uppercase font-semibold text-slate-400 tracking-wider block">
+                <span className="text-xs uppercase font-semibold text-slate-500 dark:text-slate-400 tracking-wider block">
                   Auction Status
                 </span>
                 <div className="flex items-center gap-2 mt-1">
                   {isActive && (
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                      <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30">
+                      <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
                       Live & Accepting Bids
                     </span>
                   )}
                   {auction.status === 'Closed' && (
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
-                      <Trophy className="w-3.5 h-3.5" />
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-500/15 text-amber-800 dark:text-amber-300 border border-amber-500/30">
+                      <Trophy className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
                       Auction Settled
                     </span>
                   )}
                   {auction.status === 'NoWinner' && (
-                    <span className="px-3 py-1 rounded-full text-xs font-bold bg-slate-800 text-slate-400 border border-slate-700">
+                    <span className="px-3 py-1 rounded-full text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
                       No Winner (All Bids Tied)
                     </span>
                   )}
                   {isCancelled && (
-                    <span className="px-3 py-1 rounded-full text-xs font-bold bg-rose-500/20 text-rose-400 border border-rose-500/30">
+                    <span className="px-3 py-1 rounded-full text-xs font-bold bg-rose-500/15 text-rose-700 dark:text-rose-400 border border-rose-500/30">
                       Auction Cancelled
                     </span>
                   )}
@@ -351,22 +360,22 @@ export const AuctionDetailBid: React.FC = () => {
 
             {/* WINNER ANNOUNCEMENT BANNER (If Closed) */}
             {auction.status === 'Closed' && auction.winnerUsername && (
-              <div className="mt-6 p-6 rounded-2xl bg-gradient-to-r from-amber-500/20 via-amber-500/10 to-transparent border border-amber-500/30 text-white relative overflow-hidden animate-slide-up">
+              <div className="mt-6 p-6 rounded-2xl bg-gradient-to-r from-amber-500/15 via-amber-500/5 to-transparent border border-amber-500/30 text-slate-900 dark:text-white relative overflow-hidden animate-slide-up">
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-2xl bg-amber-500/30 border border-amber-500/40 flex items-center justify-center text-amber-400 shrink-0">
+                    <div className="w-12 h-12 rounded-2xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center text-amber-600 dark:text-amber-400 shrink-0">
                       <Trophy className="w-7 h-7" />
                     </div>
                     <div>
-                      <span className="text-[11px] uppercase tracking-wider text-amber-400 font-bold block">
+                      <span className="text-[11px] uppercase tracking-wider text-amber-700 dark:text-amber-400 font-bold block">
                         Official Winner Declared
                       </span>
-                      <h3 className="text-xl font-black text-white">
+                      <h3 className="text-xl font-black text-slate-900 dark:text-white">
                         {auction.winnerUsername} {isUserWinner ? '(You!)' : ''}
                       </h3>
-                      <p className="text-xs text-slate-300 mt-0.5">
+                      <p className="text-xs text-slate-600 dark:text-slate-300 mt-0.5">
                         Won with the Lowest Unique Bid of{' '}
-                        <strong className="text-emerald-400 font-mono text-sm">
+                        <strong className="text-emerald-600 dark:text-emerald-400 font-mono text-sm">
                           ${auction.winningBidAmount?.toFixed(2)}
                         </strong>
                       </p>
@@ -374,25 +383,25 @@ export const AuctionDetailBid: React.FC = () => {
                   </div>
 
                   <div className="text-right">
-                    <span className="text-[10px] uppercase font-semibold text-amber-300/80 block">
+                    <span className="text-[10px] uppercase font-semibold text-amber-800/90 dark:text-amber-300/80 block">
                       Total Savings
                     </span>
-                    <span className="text-2xl font-black text-emerald-400 font-mono">
+                    <span className="text-2xl font-black text-emerald-600 dark:text-emerald-400 font-mono">
                       {savingsPercent}% OFF
                     </span>
-                    <span className="text-[11px] text-slate-400 block font-mono">
+                    <span className="text-[11px] text-slate-500 dark:text-slate-400 block font-mono">
                       Saved ${savingsAmount.toFixed(2)}
                     </span>
                   </div>
                 </div>
 
                 <div className="mt-4 pt-4 border-t border-amber-500/20 flex items-center justify-between text-xs">
-                  <span className="text-slate-300">
+                  <span className="text-slate-600 dark:text-slate-300">
                     Transparent LINQ resolution completed. All duplicate bids were eliminated.
                   </span>
                   <Link
                     to="/admin"
-                    className="text-amber-400 hover:text-amber-300 font-semibold underline"
+                    className="text-amber-700 hover:text-amber-800 dark:text-amber-400 dark:hover:text-amber-300 font-semibold underline"
                   >
                     View Bid Distribution
                   </Link>
@@ -402,10 +411,10 @@ export const AuctionDetailBid: React.FC = () => {
 
             {/* TIED / NO WINNER BANNER */}
             {auction.status === 'NoWinner' && (
-              <div className="mt-6 p-5 rounded-2xl bg-slate-800/60 border border-slate-700 text-xs text-slate-300 flex items-center gap-3">
-                <AlertCircle className="w-5 h-5 text-amber-400 shrink-0" />
+              <div className="mt-6 p-5 rounded-2xl bg-slate-100 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-xs text-slate-700 dark:text-slate-300 flex items-center gap-3">
+                <AlertCircle className="w-5 h-5 text-amber-500 shrink-0" />
                 <div>
-                  <strong className="text-white block font-semibold">No Lowest Unique Bid Found</strong>
+                  <strong className="text-slate-900 dark:text-white block font-semibold">No Lowest Unique Bid Found</strong>
                   <span>Every bid placed on this auction was duplicated by two or more bidders. The auction concluded with no winner.</span>
                 </div>
               </div>
@@ -416,14 +425,14 @@ export const AuctionDetailBid: React.FC = () => {
               <div className="mt-6">
                 {!currentUser ? (
                   /* Guest / Unauthenticated Mode: Prompt to Sign In */
-                  <div className="p-6 sm:p-8 rounded-2xl bg-slate-950/70 border border-slate-800 text-center">
-                    <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto mb-3 shadow-lg shadow-emerald-500/10">
+                  <div className="p-6 sm:p-8 rounded-2xl bg-slate-50 dark:bg-slate-950/70 border border-slate-200 dark:border-slate-800 text-center">
+                    <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mx-auto mb-3 shadow-lg shadow-emerald-500/10">
                       <Coins className="w-6 h-6" />
                     </div>
-                    <h4 className="text-base font-bold text-white mb-1">
+                    <h4 className="text-base font-bold text-slate-900 dark:text-white mb-1">
                       Log In to Participate in this Auction
                     </h4>
-                    <p className="text-xs text-slate-400 mb-5 max-w-md mx-auto">
+                    <p className="text-xs text-slate-600 dark:text-slate-400 mb-5 max-w-md mx-auto">
                       Sign in or create a free bidder account ($100 starting bonus included) to register and place secret lowest-unique bids.
                     </p>
                     <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
@@ -435,7 +444,7 @@ export const AuctionDetailBid: React.FC = () => {
                       </Link>
                       <Link
                         to="/signup"
-                        className="w-full sm:w-auto py-2.5 px-6 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs border border-slate-700 transition-colors"
+                        className="w-full sm:w-auto py-2.5 px-6 rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold text-xs border border-slate-300 dark:border-slate-700 transition-colors"
                       >
                         Create Account &amp; Get $100
                       </Link>
@@ -443,31 +452,31 @@ export const AuctionDetailBid: React.FC = () => {
                   </div>
                 ) : isAdmin ? (
                   /* Admin Viewing Mode: Bidding Prohibited */
-                  <div className="p-6 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-200">
+                  <div className="p-6 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-900 dark:text-amber-200">
                     <div className="flex items-start sm:items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center shrink-0">
+                      <div className="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
                         <ShieldAlert className="w-5 h-5" />
                       </div>
                       <div>
                         <div className="flex items-center gap-2">
-                          <h4 className="text-sm font-bold text-white">Admin Viewing Mode</h4>
-                          <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                          <h4 className="text-sm font-bold text-slate-900 dark:text-white">Admin Viewing Mode</h4>
+                          <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/30">
                             Bidding Restricted
                           </span>
                         </div>
-                        <p className="text-xs text-amber-300/80 mt-1">
+                        <p className="text-xs text-amber-800 dark:text-amber-300/80 mt-1">
                           Administrators are prohibited from participating or placing bids in auctions to guarantee protocol fairness and prevent conflict of interest.
                         </p>
                       </div>
                     </div>
 
                     <div className="mt-5 pt-4 border-t border-amber-500/20 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
-                      <span className="text-slate-400">
+                      <span className="text-slate-600 dark:text-slate-400">
                         To test bidding, switch to a standard bidder persona (e.g. Bob or Charlie) via the top-right persona switcher.
                       </span>
                       <Link
                         to="/admin"
-                        className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 font-semibold border border-amber-500/30 transition-colors shrink-0"
+                        className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-800 dark:text-amber-300 font-semibold border border-amber-500/30 transition-colors shrink-0"
                       >
                         <ShieldAlert className="w-3.5 h-3.5" />
                         <span>Manage in Admin Portal</span>
@@ -476,30 +485,30 @@ export const AuctionDetailBid: React.FC = () => {
                   </div>
                 ) : !auction.isUserRegistered ? (
                   /* STEP 1: Registration Required */
-                  <div className="p-6 rounded-2xl bg-slate-950/60 border border-slate-800">
+                  <div className="p-6 rounded-2xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800">
                     <div className="flex items-center gap-3 mb-4">
-                      <div className="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
+                      <div className="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
                         <Coins className="w-5 h-5" />
                       </div>
                       <div>
-                        <h4 className="text-sm font-bold text-white">Unlock Bidding Access</h4>
-                        <p className="text-xs text-slate-400">
+                        <h4 className="text-sm font-bold text-slate-900 dark:text-white">Unlock Bidding Access</h4>
+                        <p className="text-xs text-slate-600 dark:text-slate-400">
                           Pay the nominal registration fee to participate in blind bidding
                         </p>
                       </div>
                     </div>
 
-                    <div className="p-4 rounded-xl bg-slate-900 border border-slate-800/80 mb-5 flex items-center justify-between">
+                    <div className="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800/80 mb-5 flex items-center justify-between">
                       <div>
-                        <span className="text-[11px] text-slate-400 uppercase font-semibold block">Entry Fee</span>
-                        <span className="text-lg font-mono font-bold text-white">
+                        <span className="text-[11px] text-slate-500 dark:text-slate-400 uppercase font-semibold block">Entry Fee</span>
+                        <span className="text-lg font-mono font-bold text-slate-900 dark:text-white">
                           ${auction.registrationFee.toFixed(2)}
                         </span>
                       </div>
 
                       <div className="text-right">
-                        <span className="text-[11px] text-slate-400 uppercase font-semibold block">Your Wallet Balance</span>
-                        <span className="text-lg font-mono font-bold text-emerald-400">
+                        <span className="text-[11px] text-slate-500 dark:text-slate-400 uppercase font-semibold block">Your Wallet Balance</span>
+                        <span className="text-lg font-mono font-bold text-emerald-600 dark:text-emerald-400">
                           ${currentUser?.balance.toFixed(2) || '0.00'}
                         </span>
                       </div>
@@ -509,7 +518,7 @@ export const AuctionDetailBid: React.FC = () => {
                       <button
                         onClick={handleRegister}
                         disabled={isRegistering}
-                        className="flex-1 py-3 px-5 rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-bold text-xs sm:text-sm transition-all shadow-lg shadow-emerald-900/30 flex items-center justify-center gap-2"
+                        className="flex-1 py-3 px-5 rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-bold text-xs sm:text-sm transition-all shadow-md flex items-center justify-center gap-2"
                       >
                         {isRegistering ? (
                           <span>Processing registration...</span>
@@ -524,32 +533,72 @@ export const AuctionDetailBid: React.FC = () => {
                       {currentUser && currentUser.balance < auction.registrationFee && (
                         <button
                           onClick={openTopUp}
-                          className="py-3 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-xs transition-colors flex items-center justify-center gap-1.5"
+                          className="py-3 px-4 rounded-xl bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-semibold text-xs transition-colors flex items-center justify-center gap-1.5"
                         >
-                          <Wallet className="w-4 h-4 text-emerald-400" />
+                          <Wallet className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                           <span>Top Up Wallet</span>
                         </button>
                       )}
                     </div>
                   </div>
-                ) : (
-                  /* STEP 2: Registered - Blind Bid Placement Console */
-                  <div className="p-6 rounded-2xl bg-slate-950/60 border border-emerald-500/30 shadow-lg shadow-emerald-950/20">
+                ) : (myBids.length > 0 || (auction.userBidsCount && auction.userBidsCount > 0)) ? (
+                  /* STEP 2A: Already Placed Bid - 1 Bid Per Auction Limit Reached */
+                  <div className="p-6 rounded-2xl bg-slate-50 dark:bg-slate-950/60 border border-emerald-500/40 shadow-sm">
                     <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 rounded-full bg-emerald-400 animate-pulse" />
-                        <h4 className="text-sm font-bold text-white">Submit Secret / Blind Bid</h4>
+                        <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                        <h4 className="text-sm font-bold text-slate-900 dark:text-white">Secret Bid Submitted</h4>
                       </div>
-                      <span className="text-[11px] text-emerald-400 font-semibold bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-500/20">
-                        Bidding Access Unlocked
+                      <span className="text-[11px] text-emerald-700 dark:text-emerald-400 font-semibold bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-500/20">
+                        1 Bid Limit Reached
+                      </span>
+                    </div>
+
+                    <div className="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 mb-4 flex items-center justify-between">
+                      <div>
+                        <span className="text-[11px] text-slate-500 dark:text-slate-400 uppercase font-semibold block">Your Sealed Secret Bid</span>
+                        <span className="text-xl font-mono font-bold text-emerald-600 dark:text-emerald-400">
+                          ${myBids[0]?.amount !== undefined ? myBids[0].amount.toFixed(2) : 'Submitted'}
+                        </span>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-[11px] text-slate-500 dark:text-slate-400 uppercase font-semibold block">Protocol Status</span>
+                        <span className="inline-flex items-center gap-1 text-xs font-semibold text-slate-600 dark:text-slate-300">
+                          <EyeOff className="w-3.5 h-3.5 text-slate-400" /> Blind &amp; Encrypted
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-800 dark:text-amber-300 flex items-start gap-2.5">
+                      <Lock className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+                      <span>
+                        <strong>Single Bid Rule:</strong> Under this auction protocol, each registered bidder is limited to <strong>1 bid per auction</strong> to ensure absolute fairness and strategic integrity. Your bid is securely locked until the auction ends.
+                      </span>
+                    </div>
+                  </div>
+                ) : (
+                  /* STEP 2B: Registered & Has Not Bid Yet - Single Secret Bid Console */
+                  <div className="p-6 rounded-2xl bg-slate-50 dark:bg-slate-950/60 border border-emerald-500/30 shadow-sm">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 rounded-full bg-emerald-500 animate-pulse" />
+                        <h4 className="text-sm font-bold text-slate-900 dark:text-white">Submit Secret / Blind Bid</h4>
+                      </div>
+                      <span className="text-[11px] text-emerald-700 dark:text-emerald-400 font-semibold bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-500/20">
+                        1 Bid Available
                       </span>
                     </div>
 
                     <form onSubmit={handlePlaceBid}>
                       <div className="mb-4">
-                        <label className="text-xs font-semibold text-slate-300 block mb-1.5">
-                          Bid Amount (USD $)
-                        </label>
+                        <div className="flex items-center justify-between mb-1.5">
+                          <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block">
+                            Bid Amount (USD $)
+                          </label>
+                          <span className="text-[10px] text-amber-600 dark:text-amber-400 font-bold uppercase tracking-wider flex items-center gap-1">
+                            <Lock className="w-3 h-3" /> 1 Bid per Bidder Limit
+                          </span>
+                        </div>
                         <div className="relative">
                           <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-mono font-bold text-base">
                             $
@@ -562,24 +611,24 @@ export const AuctionDetailBid: React.FC = () => {
                             value={bidAmount}
                             onChange={(e) => setBidAmount(e.target.value)}
                             required
-                            className="w-full pl-9 pr-4 py-3 rounded-xl bg-slate-900 border border-slate-700 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 text-white font-mono text-base font-bold transition-all"
+                            className="w-full pl-9 pr-4 py-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 text-slate-900 dark:text-white font-mono text-base font-bold transition-all shadow-sm"
                           />
                         </div>
-                        <p className="text-[11px] text-slate-400 mt-1">
-                          Strategy tip: Choose an amount you think no one else will guess, but as low as possible!
+                        <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
+                          Rule: You may only place <strong>1 bid</strong> for this entire auction. Choose carefully!
                         </p>
                       </div>
 
                       {/* Quick Suggestion Chips */}
                       <div className="mb-5">
-                        <span className="text-[11px] text-slate-400 block mb-2 font-medium">Quick suggestions:</span>
+                        <span className="text-[11px] text-slate-500 dark:text-slate-400 block mb-2 font-medium">Quick suggestions:</span>
                         <div className="flex flex-wrap gap-2">
                           {quickBidSuggestions.map((amt) => (
                             <button
                               key={amt}
                               type="button"
                               onClick={() => setBidAmount(amt.toFixed(2))}
-                              className="px-3 py-1 rounded-lg bg-slate-800/80 hover:bg-slate-800 border border-slate-700/60 text-slate-300 hover:text-white font-mono text-xs transition-colors"
+                              className="px-3 py-1 rounded-lg bg-white dark:bg-slate-800/80 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-300 dark:border-slate-700/60 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white font-mono text-xs transition-colors shadow-sm"
                             >
                               ${amt.toFixed(2)}
                             </button>
@@ -590,14 +639,14 @@ export const AuctionDetailBid: React.FC = () => {
                       <button
                         type="submit"
                         disabled={isSubmittingBid || !bidAmount}
-                        className="w-full py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-bold text-sm transition-all shadow-lg shadow-emerald-900/40 flex items-center justify-center gap-2"
+                        className="w-full py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-bold text-sm transition-all shadow-md flex items-center justify-center gap-2"
                       >
                         {isSubmittingBid ? (
-                          <span>Encrypting & placing bid...</span>
+                          <span>Encrypting & placing single bid...</span>
                         ) : (
                           <>
                             <Sparkles className="w-4 h-4" />
-                            <span>Place Secret Bid (${parseFloat(bidAmount || '0').toFixed(2)})</span>
+                            <span>Submit My Secret Bid (${parseFloat(bidAmount || '0').toFixed(2)})</span>
                           </>
                         )}
                       </button>
@@ -609,14 +658,14 @@ export const AuctionDetailBid: React.FC = () => {
           </div>
 
           {/* User's Placed Bids in this Auction */}
-          <div className="p-6 rounded-3xl bg-slate-900/60 border border-slate-800">
+          <div className="p-6 rounded-3xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 shadow-sm">
             <div className="flex items-center justify-between mb-4">
-              <h4 className="text-sm font-bold text-white flex items-center gap-2">
-                <Tag className="w-4 h-4 text-emerald-400" />
+              <h4 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                <Tag className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                 <span>My Bids in This Auction ({myBids.length})</span>
               </h4>
-              <span className="text-xs text-slate-400">
-                Persona: <strong className="text-white">{currentUser?.username}</strong>
+              <span className="text-xs text-slate-500 dark:text-slate-400">
+                Persona: <strong className="text-slate-900 dark:text-white">{currentUser?.username}</strong>
               </span>
             </div>
 
@@ -625,17 +674,17 @@ export const AuctionDetailBid: React.FC = () => {
                 {myBids.map((b) => (
                   <div
                     key={b.id}
-                    className="p-3 rounded-xl bg-slate-950/60 border border-slate-800/80 flex items-center justify-between"
+                    className="p-3 rounded-xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800/80 flex items-center justify-between"
                   >
                     <div className="flex items-center gap-2.5">
-                      <div className="w-7 h-7 rounded-lg bg-slate-800 flex items-center justify-center text-xs font-mono font-bold text-slate-300">
+                      <div className="w-7 h-7 rounded-lg bg-slate-200 dark:bg-slate-800 flex items-center justify-center text-xs font-mono font-bold text-slate-700 dark:text-slate-300">
                         #
                       </div>
                       <div>
-                        <span className="font-mono font-bold text-white text-sm">
+                        <span className="font-mono font-bold text-slate-900 dark:text-white text-sm">
                           ${b.amount.toFixed(2)}
                         </span>
-                        <span className="text-[10px] text-slate-400 block">
+                        <span className="text-[10px] text-slate-500 dark:text-slate-400 block">
                           Placed {new Date(b.placedAt).toLocaleTimeString()}
                         </span>
                       </div>
@@ -644,21 +693,21 @@ export const AuctionDetailBid: React.FC = () => {
                     <div>
                       {auction.status === 'Closed' || auction.status === 'NoWinner' ? (
                         b.isWinner ? (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
-                            <Trophy className="w-3 h-3" /> Winning Bid!
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-500/20 text-amber-800 dark:text-amber-300 border border-amber-500/30">
+                            <Trophy className="w-3 h-3 text-amber-600 dark:text-amber-400" /> Winning Bid!
                           </span>
                         ) : b.isUniqueAfterResolution ? (
-                          <span className="px-2 py-0.5 rounded text-[11px] font-medium bg-emerald-500/20 text-emerald-300">
+                          <span className="px-2 py-0.5 rounded text-[11px] font-medium bg-emerald-500/15 text-emerald-700 dark:text-emerald-300">
                             Unique
                           </span>
                         ) : (
-                          <span className="px-2 py-0.5 rounded text-[11px] font-medium bg-rose-500/20 text-rose-300">
+                          <span className="px-2 py-0.5 rounded text-[11px] font-medium bg-rose-500/15 text-rose-700 dark:text-rose-300">
                             Duplicate (Cancelled)
                           </span>
                         )
                       ) : (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium bg-slate-800 text-slate-400">
-                          <EyeOff className="w-3 h-3" /> Blind / Secret
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-transparent">
+                          <EyeOff className="w-3 h-3 text-slate-500" /> Blind / Secret
                         </span>
                       )}
                     </div>
@@ -666,7 +715,7 @@ export const AuctionDetailBid: React.FC = () => {
                 ))}
               </div>
             ) : (
-              <div className="py-6 text-center text-xs text-slate-500">
+              <div className="py-6 text-center text-xs text-slate-500 dark:text-slate-400">
                 {auction.isUserRegistered
                   ? 'No bids placed yet. Submit your first blind bid above!'
                   : 'Register for this auction to start placing blind bids.'}

@@ -147,6 +147,12 @@ public class AuctionService : IAuctionService
         if (!isRegistered)
             return (false, "Access denied. You must register and pay the entry fee before bidding.", null);
 
+        var hasAlreadyBid = await _context.Bids
+            .AnyAsync(b => b.AuctionItemId == auctionId && b.UserId == userId);
+
+        if (hasAlreadyBid)
+            return (false, "You have already placed a bid for this auction. Each bidder is limited to one bid per auction.", null);
+
         var roundedAmount = Math.Round(amount, 2);
         if (roundedAmount <= 0.00m)
             return (false, "Bid amount must be greater than $0.00.", null);

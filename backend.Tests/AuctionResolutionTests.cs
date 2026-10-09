@@ -155,4 +155,50 @@ public class AuctionResolutionTests
         Assert.Null(result.WinnerUserId);
         Assert.Equal(0, result.TotalBids);
     }
+
+    [Fact]
+    public async Task PlaceBid_WhenUserAlreadyPlacedBid_ReturnsErrorAndRejectsSecondBid()
+    {
+        // Arrange
+        using var context = CreateInMemoryDbContext();
+        var logger = NullLogger<AuctionService>.Instance;
+        var service = new AuctionService(context, logger);
+
+        var user = new User { Id = 10, Username = "SingleBidder", Email = "single@test.com", Balance = 100, Role = "User" };
+        context.Users.Add(user);
+
+        var auction = new AuctionItem
+        {
+            Id = 10,
+            Title = "Exclusive Auction",
+            Description = "Test",
+            ImageUrl = "http://test.com/img.jpg",
+            RegistrationFee = 5.00m,
+            RetailValue = 500.00m,
+            EndTime = DateTime.UtcNow.AddHours(2),
+            Status = AuctionStatus.Active
+        };
+        context.AuctionItems.Add(auction);
+
+        // Register user
+        context.AuctionRegistrations.Add(new AuctionRegistration
+        {
+            AuctionItemId = 10,
+            UserId = 10,
+            FeePaid = 5.00m,
+            RegisteredAt = DateTime.UtcNow
+        });
+        await context.SaveChangesAsync();
+
+        // Act 1: First bid should succeed
+        var firstBidResult = await service.PlaceBidAsync(10, 10, 0.25m);
+        Assert.True(firstBidResult.Success);
+        Assert.NotNull(firstBidResult.Bid);
+
+        // Act 2: Second bid by the same user on the same auction should be rejected
+        var secondBidResult = await service.PlaceBidAsync(10, 10, 0.50m);
+        Assert.False(secondBidResult.Success);
+        Assert.Contains("already placed a bid", secondBidResult.Message);
+        Assert.Null(secondBidResult.Bid);
+    }
 }

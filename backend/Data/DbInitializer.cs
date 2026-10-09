@@ -260,7 +260,6 @@ public static class DbInitializer
             new Bid { AuctionItemId = iphoneAuction.Id, UserId = charlie.Id, Amount = 0.05m, PlacedAt = now.AddHours(-3).AddMinutes(15) },
             new Bid { AuctionItemId = iphoneAuction.Id, UserId = diana.Id, Amount = 0.12m, PlacedAt = now.AddHours(-2).AddMinutes(40) },
             new Bid { AuctionItemId = iphoneAuction.Id, UserId = evan.Id, Amount = 0.45m, PlacedAt = now.AddHours(-1).AddMinutes(10) },
-            new Bid { AuctionItemId = iphoneAuction.Id, UserId = bob.Id, Amount = 1.20m, PlacedAt = now.AddMinutes(-35) },
             new Bid { AuctionItemId = iphoneAuction.Id, UserId = fiona.Id, Amount = 0.88m, PlacedAt = now.AddMinutes(-15) },
 
             // Closed Bose bids

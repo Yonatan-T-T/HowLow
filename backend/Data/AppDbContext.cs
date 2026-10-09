@@ -23,6 +23,11 @@ public class AppDbContext : DbContext
             .HasIndex(r => new { r.AuctionItemId, r.UserId })
             .IsUnique();
 
+        // Prevent multiple bids by the same user on the same auction (one bid per auction limit)
+        modelBuilder.Entity<Bid>()
+            .HasIndex(b => new { b.AuctionItemId, b.UserId })
+            .IsUnique();
+
         // Index on AuctionItemId and Amount for rapid lowest unique bid calculation
         modelBuilder.Entity<Bid>()
             .HasIndex(b => new { b.AuctionItemId, b.Amount });

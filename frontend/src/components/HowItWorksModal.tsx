@@ -67,11 +67,10 @@ export const HowItWorksModal: React.FC<HowItWorksModalProps> = ({
               2
             </span>
             <h4 className="font-semibold text-slate-900 dark:text-white text-sm">
-              Place Blind Bids
+              Place Single Secret Bid
             </h4>
             <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
-              Submit your secret bid amounts (e.g. $0.05, $0.12). No one can see
-              your bids during the auction.
+              Submit your secret bid (e.g. $0.05, $0.12). Each bidder can only bid once per auction, completely blind.
             </p>
           </div>
 
