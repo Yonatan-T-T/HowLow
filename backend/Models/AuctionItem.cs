@@ -37,6 +37,38 @@ public class AuctionItem
     [Column(TypeName = "decimal(18,2)")]
     public decimal? WinningBidAmount { get; set; }
 
+    // User Seller Information
+    public int? SellerUserId { get; set; }
+    [ForeignKey(nameof(SellerUserId))]
+    public User? SellerUser { get; set; }
+
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal PostingFeePaid { get; set; } = 0.00m;
+
+    // Condition & Authenticity (Rule 3)
+    public bool ConditionIsBrandNew { get; set; } = true;
+
+    [MaxLength(500)]
+    public string? AuthenticityDeclaration { get; set; }
+
+    // Admin Approval Workflow (Rule 4)
+    public DateTime? ApprovedAt { get; set; }
+
+    [MaxLength(100)]
+    public string? ApprovedBy { get; set; }
+
+    [MaxLength(500)]
+    public string? RejectionReason { get; set; }
+
+    public bool FeeForfeited { get; set; } = false;
+
+    // Profit Sharing (Rule 2: 60% Seller / 40% System)
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal? SellerPayoutAmount { get; set; }
+
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal? SystemProfitAmount { get; set; }
+
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     public ICollection<AuctionRegistration> Registrations { get; set; } = new List<AuctionRegistration>();

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { Link } from 'react-router-dom';
 import { 
   Sparkles, 
   Search, 
@@ -8,7 +9,9 @@ import {
   ShieldCheck, 
   Clock, 
   Flame,
-  ArrowUpDown
+  ArrowUpDown,
+  Tag,
+  ArrowRight
 } from 'lucide-react';
 import type { AuctionItem } from '../types/auction';
 import { api } from '../services/api';
@@ -148,6 +151,28 @@ export const HomeCatalog: React.FC = () => {
                   <ShieldCheck className="w-5 h-5" /> 100% Blind
                 </span>
               </div>
+            </div>
+
+            {/* Community Seller Callout */}
+            <div className="mt-8 p-4 rounded-2xl bg-gradient-to-r from-purple-950/40 via-slate-900/60 to-emerald-950/40 border border-purple-500/30 flex flex-col sm:flex-row items-center justify-between gap-4 max-w-4xl mx-auto backdrop-blur-md">
+              <div className="flex items-center gap-3 text-left">
+                <div className="w-10 h-10 rounded-xl bg-purple-500/20 text-purple-400 flex items-center justify-center shrink-0">
+                  <Tag className="w-5 h-5" />
+                </div>
+                <div>
+                  <h4 className="text-sm font-bold text-white">Have a Brand-New Luxury Item to Sell?</h4>
+                  <p className="text-xs text-slate-300">
+                    Post your item for a 1,000 ETB listing fee and receive <strong className="text-emerald-400">60% of all gross auction revenue</strong> upon completion!
+                  </p>
+                </div>
+              </div>
+              <Link
+                to="/post-item"
+                className="px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs whitespace-nowrap shadow-lg shadow-purple-900/40 transition-all flex items-center gap-1.5 shrink-0"
+              >
+                <span>List Item &bull; Earn 60%</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
             </div>
           </div>
         </div>

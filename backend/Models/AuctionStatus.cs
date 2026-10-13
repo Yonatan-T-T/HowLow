@@ -5,5 +5,7 @@ public enum AuctionStatus
     Active = 0,
     Closed = 1,
     Cancelled = 2,
-    NoWinner = 3
+    NoWinner = 3,
+    PendingApproval = 4,
+    Rejected = 5
 }

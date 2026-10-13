@@ -98,6 +98,22 @@ export const AuctionCard: React.FC<AuctionCardProps> = ({ auction }) => {
       {/* Card Body */}
       <div className="p-5 flex-1 flex flex-col justify-between">
         <div>
+          {/* Seller Tag & Condition */}
+          <div className="flex items-center gap-1.5 mb-2 flex-wrap">
+            {auction.sellerUsername ? (
+              <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-purple-500/20 text-purple-300 border border-purple-500/30">
+                Seller: @{auction.sellerUsername}
+              </span>
+            ) : (
+              <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-slate-800 text-slate-400">
+                Official Listing
+              </span>
+            )}
+            <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/20">
+              100% Brand New
+            </span>
+          </div>
+
           <h3 className="text-lg font-bold text-white line-clamp-1 group-hover:text-emerald-400 transition-colors">
             {auction.title}
           </h3>

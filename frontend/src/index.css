@@ -208,6 +208,16 @@ html:not(.dark) .text-rose-300 {
   color: #e11d48; /* High-contrast Rose */
 }
 
+html:not(.dark) .text-purple-400,
+html:not(.dark) .text-purple-300 {
+  color: #7c3aed; /* High-contrast Purple */
+}
+
+html:not(.dark) .text-red-400,
+html:not(.dark) .text-red-300 {
+  color: #dc2626; /* High-contrast Red */
+}
+
 /* 5. Preserve Pure White Text & Icons on Solid Dark Buttons, Gradients & Avatars */
 html:not(.dark) .bg-emerald-600,
 html:not(.dark) .bg-emerald-600 *,
@@ -220,8 +230,11 @@ html:not(.dark) .bg-amber-600 *,
 html:not(.dark) .bg-rose-600,
 html:not(.dark) .bg-rose-600 *,
 html:not(.dark) .bg-slate-800.text-white,
-html:not(.dark) .bg-gradient-to-tr *,
-html:not(.dark) .bg-gradient-to-br *,
+html:not(.dark) button.bg-slate-900,
+html:not(.dark) button.bg-slate-900 *,
+html:not(.dark) .bg-gradient-to-tr.from-emerald-600 *,
+html:not(.dark) .bg-gradient-to-tr.from-emerald-500 *,
+html:not(.dark) .bg-gradient-to-br.from-indigo-500 *,
 html:not(.dark) .bg-gradient-to-r.from-amber-500\/20 *,
 html:not(.dark) button.bg-emerald-600 *,
 html:not(.dark) button.bg-indigo-600 *,

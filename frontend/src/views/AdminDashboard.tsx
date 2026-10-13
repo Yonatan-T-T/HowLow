@@ -21,7 +21,7 @@ import { api } from '../services/api';
 import { LiveCountdown } from '../components/LiveCountdown';
 
 export const AdminDashboard: React.FC = () => {
-  const [activeSection, setActiveSection] = useState<'auctions' | 'topups'>('auctions');
+  const [activeSection, setActiveSection] = useState<'auctions' | 'topups' | 'pending_items'>('auctions');
   const [auctions, setAuctions] = useState<AuctionItem[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [selectedAnalytics, setSelectedAnalytics] = useState<AuctionAnalytics | null>(null);
@@ -36,6 +36,22 @@ export const AdminDashboard: React.FC = () => {
   const [approvingId, setApprovingId] = useState<number | null>(null);
   const [rejectingId, setRejectingId] = useState<number | null>(null);
   const [copiedTxn, setCopiedTxn] = useState<string | null>(null);
+
+  // Pending User Submissions state
+  const [pendingItems, setPendingItems] = useState<AuctionItem[]>([]);
+  const [isLoadingPending, setIsLoadingPending] = useState<boolean>(false);
+  const [approvingPendingId, setApprovingPendingId] = useState<number | null>(null);
+
+  // Rejection Modal
+  const [rejectModalItem, setRejectModalItem] = useState<AuctionItem | null>(null);
+  const [rejectReason, setRejectReason] = useState<string>('Item photos or specifications do not satisfy brand-new listing guidelines.');
+  const [rejectRefundFee, setRejectRefundFee] = useState<boolean>(false);
+  const [isRejectingItem, setIsRejectingItem] = useState<boolean>(false);
+
+  // Fraud / Non-Similarity Cancellation Modal
+  const [fraudModalItem, setFraudModalItem] = useState<AuctionItem | null>(null);
+  const [fraudReason, setFraudReason] = useState<string>('Item verified as not brand new / non-similar to description. 1,000 Birr fee forfeited.');
+  const [isCancellingFraud, setIsCancellingFraud] = useState<boolean>(false);
 
   const fetchAuctions = async () => {
     try {
@@ -61,10 +77,71 @@ export const AdminDashboard: React.FC = () => {
     }
   };
 
+  const fetchPendingItems = async () => {
+    try {
+      setIsLoadingPending(true);
+      const data = await api.getPendingItems();
+      setPendingItems(data);
+    } catch (err) {
+      console.error('Failed to load pending items:', err);
+    } finally {
+      setIsLoadingPending(false);
+    }
+  };
+
   useEffect(() => {
     fetchAuctions();
     fetchTopUps();
+    fetchPendingItems();
   }, []);
+
+  const handleApprovePendingItem = async (id: number) => {
+    try {
+      setApprovingPendingId(id);
+      const res = await api.approveItem(id);
+      setStatusMessage(res.message);
+      await Promise.all([fetchPendingItems(), fetchAuctions()]);
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'Failed to approve item');
+    } finally {
+      setApprovingPendingId(null);
+    }
+  };
+
+  const handleConfirmReject = async () => {
+    if (!rejectModalItem) return;
+    try {
+      setIsRejectingItem(true);
+      const res = await api.rejectItem(rejectModalItem.id, {
+        reason: rejectReason,
+        refundFee: rejectRefundFee
+      });
+      setStatusMessage(res.message);
+      setRejectModalItem(null);
+      await Promise.all([fetchPendingItems(), fetchAuctions()]);
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'Failed to reject item');
+    } finally {
+      setIsRejectingItem(false);
+    }
+  };
+
+  const handleConfirmCancelFraud = async () => {
+    if (!fraudModalItem) return;
+    try {
+      setIsCancellingFraud(true);
+      const res = await api.cancelFraudItem(fraudModalItem.id, {
+        reason: fraudReason
+      });
+      setStatusMessage(res.message);
+      setFraudModalItem(null);
+      await Promise.all([fetchPendingItems(), fetchAuctions()]);
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'Failed to cancel auction for fraud');
+    } finally {
+      setIsCancellingFraud(false);
+    }
+  };
 
   const handleApproveTopUp = async (id: number) => {
     try {
@@ -200,6 +277,23 @@ export const AdminDashboard: React.FC = () => {
         </button>
 
         <button
+          onClick={() => setActiveSection('pending_items')}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-bold transition-all ${
+            activeSection === 'pending_items'
+              ? 'bg-purple-600 text-white shadow-md'
+              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white bg-slate-100 dark:bg-slate-900/60'
+          }`}
+        >
+          <ShieldAlert className="w-4 h-4 text-purple-300" />
+          <span>User Item Approvals</span>
+          {pendingItems.length > 0 && (
+            <span className="px-2 py-0.5 rounded-full text-xs font-black bg-emerald-500 text-white animate-pulse">
+              {pendingItems.length} Pending
+            </span>
+          )}
+        </button>
+
+        <button
           onClick={() => setActiveSection('topups')}
           className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-bold transition-all ${
             activeSection === 'topups'
@@ -286,13 +380,26 @@ export const AdminDashboard: React.FC = () => {
                           }}
                         />
                         <div>
-                          <Link
-                            to={`/auction/${a.id}`}
-                            className="font-bold text-white hover:text-emerald-400 transition-colors line-clamp-1"
-                          >
-                            {a.title}
-                          </Link>
-                          <span className="text-[10px] text-slate-400">ID #{a.id}</span>
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <Link
+                              to={`/auction/${a.id}`}
+                              className="font-bold text-white hover:text-emerald-400 transition-colors line-clamp-1"
+                            >
+                              {a.title}
+                            </Link>
+                          </div>
+                          <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                            <span className="text-[10px] text-slate-400">ID #{a.id}</span>
+                            {a.sellerUsername ? (
+                              <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-purple-500/20 text-purple-300 border border-purple-500/30">
+                                Seller: @{a.sellerUsername} (60/40)
+                              </span>
+                            ) : (
+                              <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-slate-800 text-slate-400">
+                                Admin Listed
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </td>
@@ -354,6 +461,19 @@ export const AdminDashboard: React.FC = () => {
                           <span className="font-mono text-[11px] text-emerald-400">
                             ${a.winningBidAmount?.toFixed(2)}
                           </span>
+                          {a.sellerPayoutAmount ? (
+                            <div className="mt-1 pt-1 border-t border-slate-800 text-[10px] font-mono">
+                              <span className="text-emerald-400 block">Seller 60%: +${a.sellerPayoutAmount.toFixed(2)}</span>
+                              <span className="text-purple-300 block">Platform 40%: +${a.systemProfitAmount?.toFixed(2)}</span>
+                            </div>
+                          ) : null}
+                        </div>
+                      ) : a.status === 'Cancelled' ? (
+                        <div>
+                          <span className="text-rose-400 text-[11px] font-bold block">Cancelled</span>
+                          {a.feeForfeited && (
+                            <span className="text-[9px] text-rose-300 font-mono">1,000 ETB Fee Forfeited</span>
+                          )}
                         </div>
                       ) : (
                         <span className="text-slate-500 text-[11px]">—</span>
@@ -385,7 +505,7 @@ export const AdminDashboard: React.FC = () => {
                           </button>
                         )}
 
-                        {/* Cancel Button */}
+                        {/* Standard Cancel Button */}
                         {a.status === 'Active' && (
                           <button
                             onClick={() => handleCancel(a.id)}
@@ -393,6 +513,20 @@ export const AdminDashboard: React.FC = () => {
                             title="Cancel Auction"
                           >
                             <Ban className="w-4 h-4" />
+                          </button>
+                        )}
+
+                        {/* Fraud / Condition Cancellation Button for Seller Items */}
+                        {a.sellerUserId && (a.status === 'Active' || a.status === 'PendingApproval') && (
+                          <button
+                            onClick={() => {
+                              setFraudModalItem(a);
+                              setFraudReason('Authenticity / Brand-New condition violation. Listing fee forfeited.');
+                            }}
+                            className="p-2 rounded-xl bg-rose-500/10 hover:bg-rose-600 hover:text-white text-rose-400 border border-rose-500/20 transition-colors"
+                            title="Cancel for Non-Similarity / Fraud (Rule 3: Forfeit 1,000 ETB Fee & Refund Bidders)"
+                          >
+                            <AlertTriangle className="w-4 h-4" />
                           </button>
                         )}
                       </div>
@@ -405,7 +539,7 @@ export const AdminDashboard: React.FC = () => {
         </div>
       </div>
         </>
-      ) : (
+      ) : activeSection === 'topups' ? (
         /* Telebirr Top-Up Approvals Section */
         <div className="mt-8 space-y-6 animate-fade-in">
           {/* Top-up KPI Stats */}
@@ -624,6 +758,153 @@ export const AdminDashboard: React.FC = () => {
             </div>
           </div>
         </div>
+      ) : (
+        /* User Item Approvals Section */
+        <div className="mt-8 space-y-6 animate-fade-in">
+          {/* KPI Cards */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <div className="p-5 rounded-2xl bg-slate-900/60 border border-slate-800">
+              <span className="text-xs uppercase font-semibold text-slate-400 block">Pending Reviews</span>
+              <span className="text-2xl font-black font-mono text-purple-400 mt-1 block">{pendingItems.length}</span>
+            </div>
+
+            <div className="p-5 rounded-2xl bg-slate-900/60 border border-emerald-500/30">
+              <span className="text-xs uppercase font-semibold text-emerald-400 block">Listing Fees Paid</span>
+              <span className="text-2xl font-black font-mono text-emerald-400 mt-1 block">
+                {(pendingItems.length * 1000).toLocaleString()} ETB
+              </span>
+            </div>
+
+            <div className="p-5 rounded-2xl bg-slate-900/60 border border-slate-800">
+              <span className="text-xs uppercase font-semibold text-slate-400 block">Condition Policy</span>
+              <span className="text-sm font-bold text-white mt-1 block">100% Brand New Only</span>
+            </div>
+
+            <div className="p-5 rounded-2xl bg-slate-900/60 border border-slate-800">
+              <span className="text-xs uppercase font-semibold text-slate-400 block">Profit Split</span>
+              <span className="text-sm font-bold text-emerald-400 mt-1 block">60% Seller / 40% Platform</span>
+            </div>
+          </div>
+
+          {/* List of Pending Items */}
+          {isLoadingPending ? (
+            <div className="py-16 text-center text-slate-500">
+              <RefreshCw className="w-8 h-8 animate-spin mx-auto text-purple-400 mb-2" />
+              <span>Loading pending submissions...</span>
+            </div>
+          ) : pendingItems.length === 0 ? (
+            <div className="py-16 text-center rounded-3xl bg-slate-900/60 border border-slate-800 p-8">
+              <CheckCircle2 className="w-12 h-12 text-emerald-400 mx-auto mb-3" />
+              <h3 className="text-base font-bold text-white">No items pending review</h3>
+              <p className="text-xs text-slate-400 mt-1 max-w-sm mx-auto">
+                All community seller submissions have been reviewed and approved or rejected.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {pendingItems.map((item) => {
+                const isApproving = approvingPendingId === item.id;
+                return (
+                  <div
+                    key={item.id}
+                    className="rounded-3xl bg-slate-900/80 border border-slate-800 p-6 shadow-xl space-y-4 hover:border-slate-700 transition-all"
+                  >
+                    <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-6">
+                      {/* Image & Main Info */}
+                      <div className="flex items-start gap-4">
+                        <img
+                          src={item.imageUrl}
+                          alt={item.title}
+                          className="w-24 h-24 rounded-2xl object-cover border border-slate-800 bg-slate-950 shrink-0"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src =
+                              'https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=400&q=80';
+                          }}
+                        />
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-purple-500/20 text-purple-300 border border-purple-500/30">
+                              Seller: @{item.sellerUsername || 'User'} (ID #{item.sellerUserId})
+                            </span>
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                              1,000 ETB Fee Paid
+                            </span>
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
+                              100% Brand New
+                            </span>
+                          </div>
+
+                          <h3 className="text-base font-bold text-white">{item.title}</h3>
+                          <p className="text-xs text-slate-300 line-clamp-2 max-w-2xl leading-relaxed">
+                            {item.description}
+                          </p>
+
+                          <div className="flex items-center gap-4 text-xs font-mono text-slate-400 pt-1">
+                            <span>Retail: <strong className="text-white">${item.retailValue.toLocaleString()} ETB</strong></span>
+                            <span>&bull;</span>
+                            <span>Proposed Entry: <strong className="text-emerald-400">{item.registrationFee} ETB</strong></span>
+                            <span>&bull;</span>
+                            <span>Submitted: {new Date(item.createdAt).toLocaleString()}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Quick Action Buttons */}
+                      <div className="flex lg:flex-col items-center gap-2 shrink-0">
+                        <button
+                          onClick={() => handleApprovePendingItem(item.id)}
+                          disabled={isApproving}
+                          className="w-full px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-md shadow-emerald-900/30 transition-all disabled:opacity-50"
+                          title="Approve item and publish directly to live catalog"
+                        >
+                          <CheckCircle2 className="w-4 h-4" />
+                          <span>{isApproving ? 'Approving...' : 'Approve & Go Live'}</span>
+                        </button>
+
+                        <button
+                          onClick={() => {
+                            setRejectModalItem(item);
+                            setRejectReason('Item photos or specifications do not satisfy brand-new listing guidelines.');
+                            setRejectRefundFee(false);
+                          }}
+                          disabled={isApproving}
+                          className="w-full px-4 py-2 rounded-xl bg-slate-800 hover:bg-rose-950 text-rose-300 border border-rose-500/30 font-bold text-xs flex items-center justify-center gap-1.5 transition-all disabled:opacity-50"
+                          title="Reject item with feedback description"
+                        >
+                          <XCircle className="w-4 h-4" />
+                          <span>Reject Submission</span>
+                        </button>
+
+                        <button
+                          onClick={() => {
+                            setFraudModalItem(item);
+                            setFraudReason('Item identified as counterfeit or not in brand new condition. 1,000 Birr listing fee forfeited.');
+                          }}
+                          disabled={isApproving}
+                          className="w-full px-4 py-2 rounded-xl bg-red-600/10 hover:bg-red-600 text-red-400 hover:text-white border border-red-500/30 font-bold text-xs flex items-center justify-center gap-1.5 transition-all disabled:opacity-50"
+                          title="Cancel for policy/authenticity violation and forfeit fee"
+                        >
+                          <AlertTriangle className="w-4 h-4" />
+                          <span>Cancel for Fraud</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Authenticity Declaration Inspection */}
+                    <div className="p-3.5 rounded-2xl bg-slate-950/70 border border-slate-800/80 text-xs text-slate-300">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-amber-400 block mb-1">
+                        Seller Authenticity & Condition Declaration:
+                      </span>
+                      <p className="italic font-sans text-slate-200">
+                        "{item.authenticityDeclaration || 'No declaration provided.'}"
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
       )}
 
       {/* RESOLUTION RESULT MODAL */}
@@ -807,6 +1088,153 @@ export const AdminDashboard: React.FC = () => {
               >
                 Close Analytics
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* REJECT AUCTION ITEM MODAL */}
+      {rejectModalItem && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in">
+          <div className="relative w-full max-w-lg rounded-3xl bg-slate-900 border border-slate-800 shadow-2xl p-6 sm:p-8 space-y-5">
+            <button
+              onClick={() => setRejectModalItem(null)}
+              className="absolute top-5 right-5 p-2 rounded-xl text-slate-400 hover:text-white bg-slate-800/60"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-2xl bg-rose-500/20 border border-rose-500/30 flex items-center justify-center text-rose-400">
+                <XCircle className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="text-lg font-black text-white">Reject Item Submission</h3>
+                <p className="text-xs text-slate-400">
+                  {rejectModalItem.title} (Seller: @{rejectModalItem.sellerUsername})
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-2">
+                  Rejection Reason &amp; Feedback Description *
+                </label>
+                <textarea
+                  rows={3}
+                  value={rejectReason}
+                  onChange={(e) => setRejectReason(e.target.value)}
+                  placeholder="Explain why this item was not approved..."
+                  className="w-full px-4 py-3 rounded-2xl bg-slate-950 border border-slate-800 text-white placeholder-slate-500 text-xs focus:outline-none focus:border-rose-500"
+                />
+              </div>
+
+              <div className="p-4 rounded-2xl bg-slate-950/60 border border-slate-800 space-y-2">
+                <label className="flex items-start gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={rejectRefundFee}
+                    onChange={(e) => setRejectRefundFee(e.target.checked)}
+                    className="mt-0.5 w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500 border-slate-700"
+                  />
+                  <div>
+                    <span className="text-xs font-bold text-white block">
+                      Refund 1,000 ETB Listing Fee to Seller Wallet
+                    </span>
+                    <span className="text-[11px] text-slate-400">
+                      Uncheck to forfeit the fee (e.g. for policy violations, fake items, or repetitive bad submissions).
+                    </span>
+                  </div>
+                </label>
+              </div>
+
+              <div className="flex items-center justify-end gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setRejectModalItem(null)}
+                  className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleConfirmReject}
+                  disabled={isRejectingItem || !rejectReason.trim()}
+                  className="px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold shadow-lg shadow-rose-950/50 disabled:opacity-50"
+                >
+                  {isRejectingItem ? 'Rejecting...' : 'Confirm Rejection'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* CANCEL FOR FRAUD / NON-SIMILARITY MODAL */}
+      {fraudModalItem && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in">
+          <div className="relative w-full max-w-lg rounded-3xl bg-slate-900 border border-red-800/60 shadow-2xl p-6 sm:p-8 space-y-5">
+            <button
+              onClick={() => setFraudModalItem(null)}
+              className="absolute top-5 right-5 p-2 rounded-xl text-slate-400 hover:text-white bg-slate-800/60"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-2xl bg-red-600/20 border border-red-500/40 flex items-center justify-center text-red-400">
+                <AlertTriangle className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="text-lg font-black text-white">Cancel Auction: Fraud / Condition Violation</h3>
+                <p className="text-xs text-slate-400">
+                  {fraudModalItem.title} (Seller: @{fraudModalItem.sellerUsername})
+                </p>
+              </div>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-red-950/30 border border-red-800/40 text-xs text-red-200 space-y-1">
+              <span className="font-bold block uppercase tracking-wider text-red-400">
+                Rule 3 Immediate Enforcement:
+              </span>
+              <p>
+                The seller's <strong>1,000 ETB listing fee will be forfeited permanently</strong>. 
+                Any registered bidders will automatically receive a <strong>100% refund of their entry fees</strong> back to their wallet.
+              </p>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-2">
+                  Violation Reason &amp; Audit Log *
+                </label>
+                <textarea
+                  rows={3}
+                  value={fraudReason}
+                  onChange={(e) => setFraudReason(e.target.value)}
+                  placeholder="Detail condition violation or authenticity discrepancy..."
+                  className="w-full px-4 py-3 rounded-2xl bg-slate-950 border border-slate-800 text-white placeholder-slate-500 text-xs focus:outline-none focus:border-red-500"
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setFraudModalItem(null)}
+                  className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold"
+                >
+                  Close
+                </button>
+                <button
+                  type="button"
+                  onClick={handleConfirmCancelFraud}
+                  disabled={isCancellingFraud || !fraudReason.trim()}
+                  className="px-5 py-2.5 rounded-xl bg-red-600 hover:bg-red-500 text-white text-xs font-black shadow-lg shadow-red-950/60 disabled:opacity-50"
+                >
+                  {isCancellingFraud ? 'Processing Cancellation...' : 'Enforce Fraud Cancellation & Forfeit Fee'}
+                </button>
+              </div>
             </div>
           </div>
         </div>

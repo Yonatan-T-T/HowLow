@@ -7,6 +7,7 @@ import { HomeCatalog } from "./views/HomeCatalog";
 import { AuctionDetailBid } from "./views/AuctionDetailBid";
 import { AdminDashboard } from "./views/AdminDashboard";
 import { AdminCreateAuction } from "./views/AdminCreateAuction";
+import { UserPostItem } from "./views/UserPostItem";
 import { Login } from "./views/Login";
 import { SignUp } from "./views/SignUp";
 import { ShieldCheck } from "lucide-react";
@@ -24,6 +25,9 @@ function AppContent() {
           <Routes>
             <Route path="/" element={<HomeCatalog />} />
             <Route path="/auction/:id" element={<AuctionDetailBid />} />
+            <Route path="/post-item" element={<UserPostItem />} />
+            <Route path="/sell" element={<UserPostItem />} />
+            <Route path="/seller-hub" element={<UserPostItem />} />
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/admin/create" element={<AdminCreateAuction />} />
             <Route path="/login" element={<Login />} />

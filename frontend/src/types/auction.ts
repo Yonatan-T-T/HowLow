@@ -1,4 +1,4 @@
-export type AuctionStatus = 'Active' | 'Closed' | 'Cancelled' | 'NoWinner';
+export type AuctionStatus = 'Active' | 'Closed' | 'Cancelled' | 'NoWinner' | 'PendingApproval' | 'Rejected';
 
 export interface User {
   id: number;
@@ -71,6 +71,18 @@ export interface AuctionItem {
   totalBids: number;
   isUserRegistered: boolean;
   userBidsCount: number;
+  sellerUserId?: number | null;
+  sellerUsername?: string | null;
+  postingFeePaid?: number;
+  conditionIsBrandNew?: boolean;
+  authenticityDeclaration?: string | null;
+  approvedAt?: string | null;
+  approvedBy?: string | null;
+  rejectionReason?: string | null;
+  feeForfeited?: boolean;
+  sellerPayoutAmount?: number | null;
+  systemProfitAmount?: number | null;
+  isSeller?: boolean;
   createdAt: string;
 }
 
@@ -81,6 +93,27 @@ export interface CreateAuctionPayload {
   registrationFee: number;
   retailValue: number;
   endTime: string;
+}
+
+export interface UserPostItemPayload {
+  title: string;
+  description: string;
+  imageUrl: string;
+  registrationFee: number;
+  retailValue: number;
+  endTime: string;
+  conditionIsBrandNew: boolean;
+  authenticityDeclaration: string;
+  userId?: number;
+}
+
+export interface RejectAuctionPayload {
+  reason?: string;
+  refundFee?: boolean;
+}
+
+export interface CancelFraudAuctionPayload {
+  reason?: string;
 }
 
 export interface Bid {

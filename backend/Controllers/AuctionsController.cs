@@ -123,4 +123,44 @@ public class AuctionsController : ControllerBase
         var bids = await _auctionService.GetUserBidsForAuctionAsync(id, effectiveUserId);
         return Ok(bids);
     }
+
+    [HttpPost("post-item")]
+    public async Task<IActionResult> PostItem([FromBody] UserPostItemDto dto)
+    {
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+
+        int? userId = dto.UserId ?? GetCurrentUserId();
+        if (!userId.HasValue || userId.Value <= 0)
+        {
+            return Unauthorized(new { message = "You must be logged in to post an item for auction." });
+        }
+
+        var (success, message, item, newBalance) = await _auctionService.UserPostItemAsync(userId.Value, dto);
+        if (!success)
+        {
+            return BadRequest(new { message, balance = newBalance });
+        }
+
+        return Ok(new
+        {
+            success = true,
+            message,
+            item,
+            newBalance
+        });
+    }
+
+    [HttpGet("my-items")]
+    public async Task<ActionResult<IEnumerable<AuctionItemDto>>> GetMyPostedItems([FromQuery] int? userId)
+    {
+        int effectiveUserId = userId ?? GetCurrentUserId() ?? 0;
+        if (effectiveUserId <= 0)
+        {
+            return Unauthorized(new { message = "You must be logged in to view your posted items." });
+        }
+
+        var items = await _auctionService.GetUserPostedItemsAsync(effectiveUserId);
+        return Ok(items);
+    }
 }

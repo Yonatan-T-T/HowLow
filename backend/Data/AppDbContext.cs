@@ -52,5 +52,12 @@ public class AppDbContext : DbContext
             .WithMany()
             .HasForeignKey(a => a.WinnerUserId)
             .OnDelete(DeleteBehavior.SetNull);
+
+        // Seller user relationship
+        modelBuilder.Entity<AuctionItem>()
+            .HasOne(a => a.SellerUser)
+            .WithMany()
+            .HasForeignKey(a => a.SellerUserId)
+            .OnDelete(DeleteBehavior.SetNull);
     }
 }

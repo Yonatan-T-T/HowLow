@@ -19,6 +19,28 @@ public static class DbInitializer
 
         try
         {
+            var columnsToAdd = new[]
+            {
+                "ALTER TABLE AuctionItems ADD COLUMN SellerUserId INTEGER NULL;",
+                "ALTER TABLE AuctionItems ADD COLUMN PostingFeePaid TEXT DEFAULT '0' NOT NULL;",
+                "ALTER TABLE AuctionItems ADD COLUMN ConditionIsBrandNew INTEGER DEFAULT 1 NOT NULL;",
+                "ALTER TABLE AuctionItems ADD COLUMN AuthenticityDeclaration TEXT NULL;",
+                "ALTER TABLE AuctionItems ADD COLUMN ApprovedAt TEXT NULL;",
+                "ALTER TABLE AuctionItems ADD COLUMN ApprovedBy TEXT NULL;",
+                "ALTER TABLE AuctionItems ADD COLUMN RejectionReason TEXT NULL;",
+                "ALTER TABLE AuctionItems ADD COLUMN FeeForfeited INTEGER DEFAULT 0 NOT NULL;",
+                "ALTER TABLE AuctionItems ADD COLUMN SellerPayoutAmount TEXT NULL;",
+                "ALTER TABLE AuctionItems ADD COLUMN SystemProfitAmount TEXT NULL;"
+            };
+            foreach (var sql in columnsToAdd)
+            {
+                try { await context.Database.ExecuteSqlRawAsync(sql); } catch { /* Already exists */ }
+            }
+        }
+        catch { /* Table alteration error ignored */ }
+
+        try
+        {
             await context.Database.ExecuteSqlRawAsync(@"
                 CREATE TABLE IF NOT EXISTS TopUpRequests (
                     Id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -116,6 +138,39 @@ public static class DbInitializer
                     CreatedAt = DateTime.UtcNow
                 });
                 await context.SaveChangesAsync();
+            }
+
+            // Ensure test users have sufficient balance to test posting 1000 Birr items
+            var testUsers = await context.Users.Where(u => u.Role == "User" && u.Balance < 1500m).ToListAsync();
+            foreach (var u in testUsers)
+            {
+                u.Balance += 2000.00m;
+            }
+            await context.SaveChangesAsync();
+
+            // Seed a sample pending auction from Bob if none exists
+            if (!await context.AuctionItems.AnyAsync(a => a.Status == AuctionStatus.PendingApproval))
+            {
+                var bobUser = await context.Users.FirstOrDefaultAsync(u => u.Username.ToLower() == "bob");
+                if (bobUser != null)
+                {
+                    context.AuctionItems.Add(new AuctionItem
+                    {
+                        Title = "Sony WH-1000XM5 Wireless Noise Canceling Headphones - Silver",
+                        Description = "Brand new in factory sealed packaging. Industry-leading noise cancellation with two processors and 8 microphones. Includes warranty card and receipt.",
+                        ImageUrl = "https://images.unsplash.com/photo-1546435770-a3e426bf472b?auto=format&fit=crop&w=1200&q=80",
+                        RegistrationFee = 15.00m,
+                        RetailValue = 38000.00m,
+                        EndTime = DateTime.UtcNow.AddHours(24),
+                        Status = AuctionStatus.PendingApproval,
+                        SellerUserId = bobUser.Id,
+                        PostingFeePaid = 1000.00m,
+                        ConditionIsBrandNew = true,
+                        AuthenticityDeclaration = "Factory sealed original with retail receipt and authentic serial number.",
+                        CreatedAt = DateTime.UtcNow.AddMinutes(-30)
+                    });
+                    await context.SaveChangesAsync();
+                }
             }
 
             return; // DB already initialized

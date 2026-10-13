@@ -192,6 +192,7 @@ export const AuctionDetailBid: React.FC = () => {
   const isCancelled = auction.status === 'Cancelled';
   const isActive = auction.status === 'Active';
   const isUserWinner = auction.winnerUserId === currentUser?.id;
+  const isSeller = !!currentUser && auction.sellerUserId === currentUser.id;
 
   const savingsAmount = auction.winningBidAmount
     ? Math.max(0, auction.retailValue - auction.winningBidAmount)
@@ -249,12 +250,38 @@ export const AuctionDetailBid: React.FC = () => {
 
           {/* Title & Description Box */}
           <div className="p-6 rounded-3xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 shadow-sm backdrop-blur-sm">
+            {/* Seller & Condition Tag */}
+            <div className="flex items-center gap-2 mb-3 flex-wrap">
+              {auction.sellerUsername ? (
+                <span className="px-2.5 py-1 rounded-xl text-xs font-bold bg-purple-500/20 text-purple-700 dark:text-purple-300 border border-purple-500/30">
+                  Community Seller: @{auction.sellerUsername}
+                </span>
+              ) : (
+                <span className="px-2.5 py-1 rounded-xl text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                  Official HowLow Item
+                </span>
+              )}
+              <span className="px-2.5 py-1 rounded-xl text-xs font-bold bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30">
+                100% Brand New - Guaranteed
+              </span>
+            </div>
+
             <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white leading-snug">
               {auction.title}
             </h1>
             <p className="mt-3 text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
               {auction.description}
             </p>
+
+            {/* Authenticity Declaration */}
+            {auction.authenticityDeclaration && (
+              <div className="mt-4 p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-900 dark:text-amber-200">
+                <span className="font-bold block uppercase tracking-wider text-[10px] text-amber-700 dark:text-amber-400">
+                  Authenticity &amp; Condition Declaration:
+                </span>
+                <p className="mt-0.5 italic">"{auction.authenticityDeclaration}"</p>
+              </div>
+            )}
 
             {/* Quick Metrics */}
             <div className="mt-6 pt-6 border-t border-slate-200 dark:border-slate-800/80 grid grid-cols-3 gap-2 text-center">
@@ -480,6 +507,61 @@ export const AuctionDetailBid: React.FC = () => {
                       >
                         <ShieldAlert className="w-3.5 h-3.5" />
                         <span>Manage in Admin Portal</span>
+                      </Link>
+                    </div>
+                  </div>
+                ) : isSeller ? (
+                  /* Seller Mode: Anti-Shill Protection & Profit Dashboard */
+                  <div className="p-6 rounded-2xl bg-purple-500/10 border border-purple-500/30 text-purple-900 dark:text-purple-200 space-y-4">
+                    <div className="flex items-start sm:items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-purple-500/20 text-purple-600 dark:text-purple-400 flex items-center justify-center shrink-0">
+                        <ShieldAlert className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <h4 className="text-sm font-bold text-slate-900 dark:text-white">You Listed This Auction</h4>
+                          <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-purple-500/20 text-purple-700 dark:text-purple-300 border border-purple-500/30">
+                            Seller Dashboard (60% Profit)
+                          </span>
+                        </div>
+                        <p className="text-xs text-purple-800 dark:text-purple-300/80 mt-1">
+                          Anti-Shill Protection: Sellers cannot bid on their own auctions to guarantee lowest unique bid fairness. Your 60% revenue share will automatically credit to your wallet when resolved!
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-2">
+                      <div className="p-3 rounded-xl bg-white/60 dark:bg-slate-900/60 border border-purple-500/20">
+                        <span className="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400 block">Listing Fee Paid</span>
+                        <span className="text-sm font-mono font-bold text-slate-900 dark:text-white">1,000 ETB</span>
+                      </div>
+                      <div className="p-3 rounded-xl bg-emerald-500/15 border border-emerald-500/30">
+                        <span className="text-[10px] uppercase font-bold text-emerald-700 dark:text-emerald-400 block">Your 60% Payout</span>
+                        <span className="text-sm font-mono font-bold text-emerald-700 dark:text-emerald-300">
+                          {auction.sellerPayoutAmount 
+                            ? `${auction.sellerPayoutAmount.toFixed(2)} ETB` 
+                            : `~${Math.round(((auction.registrationFee * auction.totalRegistrations) + (auction.winningBidAmount || 0)) * 0.60)} ETB`}
+                        </span>
+                      </div>
+                      <div className="p-3 rounded-xl bg-purple-500/15 border border-purple-500/30">
+                        <span className="text-[10px] uppercase font-bold text-purple-700 dark:text-purple-400 block">System 40% Cut</span>
+                        <span className="text-sm font-mono font-bold text-purple-700 dark:text-purple-300">
+                          {auction.systemProfitAmount 
+                            ? `${auction.systemProfitAmount.toFixed(2)} ETB` 
+                            : `~${Math.round(((auction.registrationFee * auction.totalRegistrations) + (auction.winningBidAmount || 0)) * 0.40)} ETB`}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="pt-2 border-t border-purple-500/20 flex items-center justify-between text-xs">
+                      <span className="text-slate-500 dark:text-slate-400">
+                        Total {auction.totalRegistrations} bidders registered &bull; {auction.totalBids} blind bids
+                      </span>
+                      <Link
+                        to="/seller-hub"
+                        className="text-purple-700 hover:text-purple-800 dark:text-purple-400 dark:hover:text-purple-300 font-bold underline"
+                      >
+                        Manage All Your Items
                       </Link>
                     </div>
                   </div>

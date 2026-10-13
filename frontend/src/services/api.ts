@@ -77,6 +77,18 @@ export const api = {
     return res.data;
   },
 
+  // User Item Posting (Seller workflow)
+  userPostItem: async (payload: import('../types/auction').UserPostItemPayload): Promise<{ success: boolean; message: string; item: AuctionItem; newBalance: number }> => {
+    const res = await apiClient.post('/auctions/post-item', payload);
+    return res.data;
+  },
+
+  getMyPostedItems: async (userId?: number): Promise<AuctionItem[]> => {
+    const params = userId ? { userId } : {};
+    const res = await apiClient.get<AuctionItem[]>('/auctions/my-items', { params });
+    return res.data;
+  },
+
   // Admin
   createAuction: async (payload: CreateAuctionPayload): Promise<AuctionItem> => {
     const res = await apiClient.post<AuctionItem>('/admin/items', payload);
@@ -90,6 +102,26 @@ export const api = {
 
   cancelAuction: async (id: number): Promise<{ message: string }> => {
     const res = await apiClient.post(`/admin/auctions/${id}/cancel`);
+    return res.data;
+  },
+
+  getPendingItems: async (): Promise<AuctionItem[]> => {
+    const res = await apiClient.get<AuctionItem[]>('/admin/pending-items');
+    return res.data;
+  },
+
+  approveItem: async (id: number): Promise<{ success: boolean; message: string; item: AuctionItem }> => {
+    const res = await apiClient.post(`/admin/items/${id}/approve`);
+    return res.data;
+  },
+
+  rejectItem: async (id: number, payload?: import('../types/auction').RejectAuctionPayload): Promise<{ success: boolean; message: string }> => {
+    const res = await apiClient.post(`/admin/items/${id}/reject`, payload);
+    return res.data;
+  },
+
+  cancelFraudItem: async (id: number, payload?: import('../types/auction').CancelFraudAuctionPayload): Promise<{ success: boolean; message: string }> => {
+    const res = await apiClient.post(`/admin/items/${id}/cancel-fraud`, payload);
     return res.data;
   },
 

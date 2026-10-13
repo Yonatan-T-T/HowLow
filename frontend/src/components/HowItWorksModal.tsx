@@ -151,7 +151,7 @@ export const HowItWorksModal: React.FC<HowItWorksModalProps> = ({
         </div>
 
         {/* Edge Case Note */}
-        <div className="flex items-start gap-2.5 p-3.5 rounded-xl bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 text-xs text-amber-900 dark:text-amber-200/90">
+        <div className="flex items-start gap-2.5 p-3.5 rounded-xl bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 text-xs text-amber-900 dark:text-amber-200/90 mb-4">
           <AlertCircle className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
           <span>
             <strong className="text-amber-900 dark:text-amber-200">
@@ -161,6 +161,20 @@ export const HowItWorksModal: React.FC<HowItWorksModalProps> = ({
             exists), the auction is safely marked as "No Winner / Tied",
             ensuring complete algorithmic fairness.
           </span>
+        </div>
+
+        {/* Community Seller & 60/40 Profit Rules */}
+        <div className="p-4 rounded-2xl bg-purple-50 dark:bg-purple-950/20 border border-purple-200 dark:border-purple-800/40 text-xs text-purple-950 dark:text-purple-200 space-y-2 mb-2">
+          <span className="font-bold uppercase tracking-wider text-[11px] text-purple-700 dark:text-purple-300 block">
+            Selling on HowLow: 60% Seller / 40% Platform Rules
+          </span>
+          <ul className="space-y-1.5 list-disc pl-4 text-slate-700 dark:text-slate-300">
+            <li><strong>1,000 ETB Listing Fee:</strong> Paid up front upon submission (non-refundable).</li>
+            <li><strong>100% Brand New Condition:</strong> All items must be factory sealed and exactly as described. Any discrepancy or counterfeit results in immediate cancellation and forfeiture of the 1,000 ETB fee.</li>
+            <li><strong>60% / 40% Revenue Split:</strong> When your auction concludes, 60% of all gross revenue (entry fees + winning bid) is paid to your wallet, with 40% retained by the system.</li>
+            <li><strong>Admin Review:</strong> Every submitted item is reviewed and verified by an admin before being published to the live catalog.</li>
+            <li><strong>Anti-Shill Protection:</strong> Sellers cannot participate or bid on their own items.</li>
+          </ul>
         </div>
 
         <div className="mt-6 flex justify-end">
