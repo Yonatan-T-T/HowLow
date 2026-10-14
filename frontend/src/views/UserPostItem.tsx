@@ -381,7 +381,7 @@ export const UserPostItem: React.FC = () => {
           onClick={() => setActiveTab("my_items")}
           className={`flex items-center gap-2 px-5 py-2.5 rounded-2xl text-xs sm:text-sm font-bold transition-all ${
             activeTab === "my_items"
-              ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-md"
+              ? "bg-emerald-600 text-white shadow-lg shadow-emerald-900/30 dark:shadow-emerald-950/50"
               : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white bg-slate-100 hover:bg-slate-200 dark:bg-slate-900 dark:hover:bg-slate-800"
           }`}
         >
