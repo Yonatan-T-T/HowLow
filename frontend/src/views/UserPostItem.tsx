@@ -9,11 +9,12 @@ import {
   Check,
   RefreshCw,
   ArrowRight,
-  TrendingUp,
   Wallet,
   ShoppingBag,
   Info,
   Lock,
+  Calculator,
+  Target,
 } from "lucide-react";
 import { useUser } from "../context/UserContext";
 import { api } from "../services/api";
@@ -110,11 +111,51 @@ export const UserPostItem: React.FC = () => {
   const [myItems, setMyItems] = useState<AuctionItem[]>([]);
   const [isLoadingItems, setIsLoadingItems] = useState(false);
 
-  // Profit Simulator Estimate
-  const estimatedEntrants = 80;
-  const estimatedGrossRevenue = registrationFee * estimatedEntrants + 45; // registration fees + sample winning bid
-  const estimatedSellerShare = Math.round(estimatedGrossRevenue * 0.6);
-  const estimatedSystemShare = Math.round(estimatedGrossRevenue * 0.4);
+  // Profit Simulator & Financial Logic
+  const LISTING_FEE = 1000; // 1,000 ETB upfront submission fee
+  const SELLER_SHARE_RATIO = 0.6; // 60% of gross revenue pool
+  const SYSTEM_SHARE_RATIO = 0.4; // 40% of gross revenue pool
+
+  const numRetailValue = Math.max(0, Number(retailValue) || 0);
+  const numRegFee = Math.max(1, Number(registrationFee) || 1);
+  const totalSellerCost = numRetailValue + LISTING_FEE;
+
+  // Breakeven Entrants: Number of bidders required so Seller 60% payout covers item retail value + 1,000 ETB fee
+  // Formula: 0.60 * (breakevenEntrants * numRegFee) >= totalSellerCost
+  const breakevenEntrants = Math.max(
+    1,
+    Math.ceil(totalSellerCost / (SELLER_SHARE_RATIO * numRegFee))
+  );
+
+  const [entrantScenario, setEntrantScenario] = useState<
+    "breakeven" | "target" | "high" | "custom"
+  >("target");
+  const [customEntrants, setCustomEntrants] = useState<number>(0);
+
+  // Active simulated entrant count
+  const simulatedEntrants =
+    entrantScenario === "breakeven"
+      ? breakevenEntrants
+      : entrantScenario === "target"
+      ? Math.ceil(breakevenEntrants * 1.25)
+      : entrantScenario === "high"
+      ? Math.ceil(breakevenEntrants * 1.5)
+      : Math.max(1, customEntrants || breakevenEntrants);
+
+  const estimatedGrossRevenue = Math.round(numRegFee * simulatedEntrants);
+  const estimatedSellerShare = Math.round(
+    estimatedGrossRevenue * SELLER_SHARE_RATIO
+  );
+  const estimatedSystemShare = Math.round(
+    estimatedGrossRevenue * SYSTEM_SHARE_RATIO
+  );
+
+  // Real Net Profit = Seller Payout - Total Cost (Retail Value + 1,000 ETB Listing Fee)
+  const estimatedNetProfit = estimatedSellerShare - totalSellerCost;
+  const estimatedProfitMargin =
+    totalSellerCost > 0
+      ? Math.round((estimatedNetProfit / totalSellerCost) * 100)
+      : 0;
 
   const fetchMyItems = async () => {
     if (!currentUser) return;
@@ -742,39 +783,123 @@ export const UserPostItem: React.FC = () => {
             {/* Real-time Profit Split Simulator */}
             <div className="p-6 rounded-3xl bg-white dark:bg-slate-900 text-slate-900 dark:text-white border border-slate-200 dark:border-slate-800 shadow-xl space-y-4">
               <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400">
-                <TrendingUp className="w-5 h-5" />
+                <Calculator className="w-5 h-5" />
                 <h3 className="text-sm font-bold uppercase tracking-wider">
-                  Revenue &amp; Profit Calculator
+                  Revenue &amp; Net Profit Calculator
                 </h3>
               </div>
               <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
-                Here is your projected earnings based on the 60% Seller / 40%
-                Platform profit split rule:
+                Live simulation based on the <strong>60% Seller / 40% Platform</strong> revenue split rule.
               </p>
 
-              <div className="space-y-3 pt-2">
-                <div className="flex items-center justify-between text-xs py-1.5 border-b border-slate-100 dark:border-slate-800">
-                  <span className="text-slate-500 dark:text-slate-400">
-                    Registration Fee:
-                  </span>
+              {/* Baseline Cost Breakdown */}
+              <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 space-y-2">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-slate-500 dark:text-slate-400">Item Retail Value:</span>
                   <span className="font-mono font-bold text-slate-900 dark:text-white">
-                    {registrationFee} ETB
+                    {numRetailValue.toLocaleString()} ETB
+                  </span>
+                </div>
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-slate-500 dark:text-slate-400">Listing Submission Fee:</span>
+                  <span className="font-mono font-bold text-slate-900 dark:text-white">
+                    {LISTING_FEE.toLocaleString()} ETB
+                  </span>
+                </div>
+                <div className="flex items-center justify-between text-xs pt-1 border-t border-slate-200 dark:border-slate-800">
+                  <span className="font-bold text-slate-700 dark:text-slate-300">Total Seller Cost:</span>
+                  <span className="font-mono font-bold text-slate-900 dark:text-white">
+                    {totalSellerCost.toLocaleString()} ETB
+                  </span>
+                </div>
+              </div>
+
+              {/* Simulation Scenarios */}
+              <div className="space-y-2 pt-1">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                    <Target className="w-3.5 h-3.5 text-emerald-500" />
+                    <span>Simulated Bidders</span>
+                  </span>
+                  <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400">
+                    ~{simulatedEntrants.toLocaleString()} entrants
                   </span>
                 </div>
 
-                <div className="flex items-center justify-between text-xs py-1.5 border-b border-slate-100 dark:border-slate-800">
-                  <span className="text-slate-500 dark:text-slate-400">
-                    Estimated Entrants:
-                  </span>
-                  <span className="font-mono font-bold text-slate-900 dark:text-white">
-                    ~{estimatedEntrants} bidders
-                  </span>
+                <div className="grid grid-cols-3 gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEntrantScenario("breakeven");
+                    }}
+                    className={`py-1.5 px-2 rounded-xl text-[11px] font-bold border transition-all ${
+                      entrantScenario === "breakeven"
+                        ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900 border-transparent shadow-sm"
+                        : "border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+                    }`}
+                  >
+                    Breakeven
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEntrantScenario("target");
+                    }}
+                    className={`py-1.5 px-2 rounded-xl text-[11px] font-bold border transition-all ${
+                      entrantScenario === "target"
+                        ? "bg-emerald-600 text-white border-transparent shadow-sm"
+                        : "border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+                    }`}
+                  >
+                    Target (+25%)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEntrantScenario("high");
+                    }}
+                    className={`py-1.5 px-2 rounded-xl text-[11px] font-bold border transition-all ${
+                      entrantScenario === "high"
+                        ? "bg-purple-600 text-white border-transparent shadow-sm"
+                        : "border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+                    }`}
+                  >
+                    High (+50%)
+                  </button>
                 </div>
 
-                <div className="flex items-center justify-between text-xs py-1.5 border-b border-slate-100 dark:border-slate-800">
-                  <span className="text-slate-500 dark:text-slate-400">
-                    Est. Gross Auction Pool:
+                {/* Draggable Slider */}
+                <div className="pt-2">
+                  <input
+                    type="range"
+                    min={Math.max(10, Math.floor(breakevenEntrants * 0.5))}
+                    max={Math.max(100, Math.ceil(breakevenEntrants * 2.5))}
+                    step={Math.max(5, Math.floor(breakevenEntrants / 50))}
+                    value={simulatedEntrants}
+                    onChange={(e) => {
+                      setEntrantScenario("custom");
+                      setCustomEntrants(Number(e.target.value));
+                    }}
+                    className="w-full accent-emerald-500 cursor-pointer"
+                  />
+                  <div className="flex items-center justify-between text-[10px] text-slate-400 font-mono mt-1">
+                    <span>Min: {Math.max(10, Math.floor(breakevenEntrants * 0.5)).toLocaleString()}</span>
+                    <span>Breakeven: {breakevenEntrants.toLocaleString()}</span>
+                    <span>Max: {Math.max(100, Math.ceil(breakevenEntrants * 2.5)).toLocaleString()}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Pool & Split Breakdown */}
+              <div className="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800 text-xs">
+                <div className="flex items-center justify-between py-1">
+                  <span className="text-slate-500 dark:text-slate-400">Entry Fee:</span>
+                  <span className="font-mono font-bold text-slate-900 dark:text-white">
+                    {numRegFee} ETB
                   </span>
+                </div>
+                <div className="flex items-center justify-between py-1">
+                  <span className="text-slate-500 dark:text-slate-400">Gross Auction Pool:</span>
                   <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400">
                     {estimatedGrossRevenue.toLocaleString()} ETB
                   </span>
@@ -782,16 +907,16 @@ export const UserPostItem: React.FC = () => {
               </div>
 
               {/* The 60/40 Split Boxes */}
-              <div className="pt-2 grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-3 pt-1">
                 <div className="p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-center">
                   <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-400 block">
                     Your 60% Payout
                   </span>
-                  <span className="text-lg font-black font-mono text-emerald-600 dark:text-emerald-400 block mt-1">
+                  <span className="text-base font-black font-mono text-emerald-600 dark:text-emerald-400 block mt-1">
                     {estimatedSellerShare.toLocaleString()} ETB
                   </span>
                   <span className="text-[9px] text-emerald-700/90 dark:text-emerald-300/80 font-medium">
-                    Direct Wallet Credit
+                    Wallet Credit
                   </span>
                 </div>
 
@@ -799,20 +924,62 @@ export const UserPostItem: React.FC = () => {
                   <span className="text-[10px] font-bold uppercase tracking-wider text-purple-700 dark:text-purple-400 block">
                     System 40% Share
                   </span>
-                  <span className="text-lg font-black font-mono text-purple-700 dark:text-purple-300 block mt-1">
+                  <span className="text-base font-black font-mono text-purple-700 dark:text-purple-300 block mt-1">
                     {estimatedSystemShare.toLocaleString()} ETB
                   </span>
                   <span className="text-[9px] text-purple-700/90 dark:text-purple-300/80 font-medium">
-                    Platform Service
+                    Platform Revenue
                   </span>
                 </div>
+              </div>
+
+              {/* True Net Profit Display */}
+              <div
+                className={`p-4 rounded-2xl border transition-all ${
+                  estimatedNetProfit >= 0
+                    ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-900 dark:text-emerald-200"
+                    : "bg-amber-500/10 border-amber-500/30 text-amber-900 dark:text-amber-200"
+                }`}
+              >
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-[10px] font-bold uppercase tracking-wider">
+                    {estimatedNetProfit >= 0 ? "Estimated Net Profit" : "Projected Shortfall"}
+                  </span>
+                  <span
+                    className={`text-xs font-mono font-bold px-2 py-0.5 rounded-full ${
+                      estimatedNetProfit >= 0
+                        ? "bg-emerald-500/20 text-emerald-600 dark:text-emerald-400"
+                        : "bg-amber-500/20 text-amber-700 dark:text-amber-300"
+                    }`}
+                  >
+                    {estimatedNetProfit >= 0 ? `+${estimatedProfitMargin}%` : `${estimatedProfitMargin}%`}
+                  </span>
+                </div>
+
+                <div className="flex items-baseline gap-2 mt-1">
+                  <span
+                    className={`text-xl font-black font-mono ${
+                      estimatedNetProfit >= 0
+                        ? "text-emerald-600 dark:text-emerald-400"
+                        : "text-amber-600 dark:text-amber-400"
+                    }`}
+                  >
+                    {estimatedNetProfit >= 0 ? "+" : ""}
+                    {estimatedNetProfit.toLocaleString()} ETB
+                  </span>
+                </div>
+
+                <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-2 leading-tight">
+                  {estimatedNetProfit >= 0
+                    ? `Net profit after recovering both your ${numRetailValue.toLocaleString()} ETB item value and 1,000 ETB listing fee.`
+                    : `Requires at least ~${breakevenEntrants.toLocaleString()} bidders to fully cover your item value and 1,000 ETB listing fee.`}
+                </p>
               </div>
 
               <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 text-[11px] text-slate-600 dark:text-slate-400 flex items-start gap-2">
                 <Info className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
                 <span>
-                  The more bidders that join your auction, the higher your
-                  payout! All payments are automatic upon auction close.
+                  <strong>Formula:</strong> 60% Payout ({estimatedSellerShare.toLocaleString()} ETB) − Item Cost ({numRetailValue.toLocaleString()} ETB) − Listing Fee (1,000 ETB) = {estimatedNetProfit >= 0 ? "+" : ""}{estimatedNetProfit.toLocaleString()} ETB.
                 </span>
               </div>
             </div>
