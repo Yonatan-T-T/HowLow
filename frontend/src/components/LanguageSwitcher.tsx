@@ -1,5 +1,5 @@
 import React from "react";
-import { Languages, Check } from "lucide-react";
+import { Check } from "lucide-react";
 import { useLanguage } from "../context/LanguageContext";
 
 interface LanguageSwitcherProps {
@@ -10,7 +10,7 @@ interface LanguageSwitcherProps {
 export const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
   className = "",
 }) => {
-  const { language, setLanguage, toggleLanguage } = useLanguage();
+  const { language, setLanguage } = useLanguage();
 
   return (
     <div className={`relative inline-flex items-center ${className}`}>
