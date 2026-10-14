@@ -70,7 +70,8 @@ export const HowItWorksModal: React.FC<HowItWorksModalProps> = ({
               Place Single Secret Bid
             </h4>
             <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
-              Submit your secret bid (e.g. $0.05, $0.12). Each bidder can only bid once per auction, completely blind.
+              Submit your secret bid (e.g. $0.05, $0.12). Each bidder can only
+              bid once per auction, completely blind.
             </p>
           </div>
 
@@ -169,11 +170,30 @@ export const HowItWorksModal: React.FC<HowItWorksModalProps> = ({
             Selling on HowLow: 60% Seller / 40% Platform Rules
           </span>
           <ul className="space-y-1.5 list-disc pl-4 text-slate-700 dark:text-slate-300">
-            <li><strong>1,000 ETB Listing Fee:</strong> Paid up front upon submission (non-refundable).</li>
-            <li><strong>100% Brand New Condition:</strong> All items must be factory sealed and exactly as described. Any discrepancy or counterfeit results in immediate cancellation and forfeiture of the 1,000 ETB fee.</li>
-            <li><strong>60% / 40% Revenue Split:</strong> When your auction concludes, 60% of all gross revenue (entry fees + winning bid) is paid to your wallet, with 40% retained by the system.</li>
-            <li><strong>Admin Review:</strong> Every submitted item is reviewed and verified by an admin before being published to the live catalog.</li>
-            <li><strong>Anti-Shill Protection:</strong> Sellers cannot participate or bid on their own items.</li>
+            <li>
+              <strong>1,000 ETB Listing Fee:</strong> Paid up front upon
+              submission (non-refundable).
+            </li>
+            <li>
+              <strong>100% Brand New Condition:</strong> All items must be
+              factory sealed and exactly as described. Any discrepancy or
+              counterfeit results in immediate cancellation and forfeiture of
+              the 1,000 ETB fee.
+            </li>
+            <li>
+              <strong>60% / 40% Revenue Split:</strong> When your auction
+              concludes, 60% of all gross revenue (entry fees + winning bid) is
+              paid to your wallet, with 40% retained by the system.
+            </li>
+            <li>
+              <strong>Admin Review:</strong> Every submitted item is reviewed
+              and verified by an admin before being published to the live
+              catalog.
+            </li>
+            <li>
+              <strong>Anti-Shill Protection:</strong> Sellers cannot participate
+              or bid on their own items.
+            </li>
           </ul>
         </div>
 

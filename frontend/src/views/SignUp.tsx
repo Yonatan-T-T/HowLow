@@ -35,7 +35,7 @@ export const SignUp: React.FC = () => {
   // Validation checks
   const isUsernameValid = username.trim().length >= 3;
   const isEmailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
-  const cleanPhone = phoneNumber.trim().replace(/[\s-]/g, '');
+  const cleanPhone = phoneNumber.trim().replace(/[\s-]/g, "");
   const isPhoneValid = /^(\+251|0)?[79]\d{8}$/.test(cleanPhone);
   const isPasswordValid = password.length >= 6;
   const doPasswordsMatch = password === confirmPassword && password.length > 0;
@@ -52,7 +52,9 @@ export const SignUp: React.FC = () => {
       return;
     }
     if (!isPhoneValid) {
-      setError("Please provide a valid Ethiopian Telebirr phone number (e.g. 0912345678 or 0712345678).");
+      setError(
+        "Please provide a valid Ethiopian Telebirr phone number (e.g. 0912345678 or 0712345678).",
+      );
       return;
     }
     if (!isPasswordValid) {
@@ -67,7 +69,13 @@ export const SignUp: React.FC = () => {
     try {
       setIsLoading(true);
       setError(null);
-      const res = await signup(username.trim(), email.trim(), cleanPhone, password, role);
+      const res = await signup(
+        username.trim(),
+        email.trim(),
+        cleanPhone,
+        password,
+        role,
+      );
       if (res.success) {
         setSuccessMsg(res.message);
         setTimeout(() => {
@@ -114,7 +122,8 @@ export const SignUp: React.FC = () => {
               $100.00 Starting Wallet Bonus
             </span>
             <span className="text-[11px] text-slate-500 dark:text-slate-400">
-              Every newly registered profile automatically gets $100 starting funds.
+              Every newly registered profile automatically gets $100 starting
+              funds.
             </span>
           </div>
         </div>
@@ -204,7 +213,8 @@ export const SignUp: React.FC = () => {
               />
             </div>
             <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
-              Used when transferring funds via Telebirr mobile money for wallet deposits and approval.
+              Used when transferring funds via Telebirr mobile money for wallet
+              deposits and approval.
             </p>
           </div>
 
@@ -231,7 +241,11 @@ export const SignUp: React.FC = () => {
                 className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
                 aria-label={showPassword ? "Hide password" : "Show password"}
               >
-                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                {showPassword ? (
+                  <EyeOff className="w-4 h-4" />
+                ) : (
+                  <Eye className="w-4 h-4" />
+                )}
               </button>
             </div>
           </div>
@@ -296,7 +310,13 @@ export const SignUp: React.FC = () => {
 
           <button
             type="submit"
-            disabled={isLoading || !isUsernameValid || !isEmailValid || !isPasswordValid || !doPasswordsMatch}
+            disabled={
+              isLoading ||
+              !isUsernameValid ||
+              !isEmailValid ||
+              !isPasswordValid ||
+              !doPasswordsMatch
+            }
             className="w-full mt-2 py-3.5 px-4 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white font-bold text-sm shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/40 transition-all duration-200 flex items-center justify-center gap-2 group disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isLoading ? (
@@ -324,7 +344,9 @@ export const SignUp: React.FC = () => {
 
         <div className="mt-4 flex items-center justify-center gap-1.5 text-[11px] text-slate-400">
           <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
-          <span>Encrypted credentials &amp; lowest-unique algorithm certified fair</span>
+          <span>
+            Encrypted credentials &amp; lowest-unique algorithm certified fair
+          </span>
         </div>
       </div>
     </div>

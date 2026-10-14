@@ -24,7 +24,8 @@ import { useTheme } from "../context/ThemeContext";
 import { HowItWorksModal } from "./HowItWorksModal";
 
 export const Navbar: React.FC = () => {
-  const { currentUser, testProfiles, quickLoginAs, logout, openTopUp } = useUser();
+  const { currentUser, testProfiles, quickLoginAs, logout, openTopUp } =
+    useUser();
   const { theme, toggleTheme } = useTheme();
   const location = useLocation();
   const navigate = useNavigate();
@@ -64,7 +65,10 @@ export const Navbar: React.FC = () => {
             <div className="min-w-0">
               <div className="flex items-center gap-1.5 whitespace-nowrap">
                 <span className="text-base sm:text-lg font-black tracking-tight text-slate-900 dark:text-white group-hover:text-emerald-500 dark:group-hover:text-emerald-400 transition-colors">
-                  Unique<span className="text-emerald-500 dark:text-emerald-400">Low</span>
+                  Unique
+                  <span className="text-emerald-500 dark:text-emerald-400">
+                    Low
+                  </span>
                 </span>
                 <span className="hidden sm:inline-block text-[9px] sm:text-[10px] uppercase font-bold tracking-widest px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
                   Auction
@@ -103,7 +107,8 @@ export const Navbar: React.FC = () => {
             <Link
               to="/post-item"
               className={`px-3.5 py-2 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 ${
-                location.pathname === "/post-item" || location.pathname === "/seller-hub"
+                location.pathname === "/post-item" ||
+                location.pathname === "/seller-hub"
                   ? "bg-slate-100 dark:bg-slate-800 text-emerald-600 dark:text-emerald-400 border border-slate-200 dark:border-slate-700/60 shadow-sm"
                   : "text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-900"
               }`}
@@ -181,7 +186,8 @@ export const Navbar: React.FC = () => {
                             Quick Test Credentials
                           </span>
                           <span className="text-[11px] text-slate-500 dark:text-slate-400">
-                            2 Admins &amp; 5 Bidders ready for 1-click evaluation
+                            2 Admins &amp; 5 Bidders ready for 1-click
+                            evaluation
                           </span>
                         </div>
                         <div className="space-y-1.5 max-h-[60vh] overflow-y-auto">
@@ -302,7 +308,9 @@ export const Navbar: React.FC = () => {
                           {currentUser.email}
                         </span>
                         <div className="mt-2 pt-2 border-t border-slate-200 dark:border-slate-800/60 flex items-center justify-between text-xs">
-                          <span className="text-slate-500 dark:text-slate-400">Wallet:</span>
+                          <span className="text-slate-500 dark:text-slate-400">
+                            Wallet:
+                          </span>
                           <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400">
                             ${currentUser.balance.toFixed(2)}
                           </span>
@@ -316,7 +324,9 @@ export const Navbar: React.FC = () => {
                         </span>
                         <div className="space-y-1 max-h-40 overflow-y-auto pr-1">
                           {testProfiles.map((tp) => {
-                            const isCurrent = tp.username.toLowerCase() === currentUser.username.toLowerCase();
+                            const isCurrent =
+                              tp.username.toLowerCase() ===
+                              currentUser.username.toLowerCase();
                             return (
                               <button
                                 key={tp.username}
@@ -327,7 +337,9 @@ export const Navbar: React.FC = () => {
                                     : "text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
                                 }`}
                               >
-                                <span className="font-medium truncate">{tp.username}</span>
+                                <span className="font-medium truncate">
+                                  {tp.username}
+                                </span>
                                 <span className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-semibold">
                                   {tp.role}
                                 </span>
@@ -350,7 +362,9 @@ export const Navbar: React.FC = () => {
                                 <Tag className="w-3.5 h-3.5" />
                                 <span>Post New Item</span>
                               </div>
-                              <span className="text-[9px] font-mono font-bold text-slate-500">1,000 ETB</span>
+                              <span className="text-[9px] font-mono font-bold text-slate-500">
+                                1,000 ETB
+                              </span>
                             </Link>
 
                             <Link
@@ -511,7 +525,9 @@ export const Navbar: React.FC = () => {
                       <Zap className="w-3.5 h-3.5 text-amber-500 dark:text-amber-400" />
                       <span>1-Click Test Accounts ({testProfiles.length})</span>
                     </div>
-                    <ChevronDown className={`w-3.5 h-3.5 transition-transform ${isMobileDemoOpen ? 'rotate-180' : ''}`} />
+                    <ChevronDown
+                      className={`w-3.5 h-3.5 transition-transform ${isMobileDemoOpen ? "rotate-180" : ""}`}
+                    />
                   </button>
 
                   {isMobileDemoOpen && (
@@ -525,7 +541,9 @@ export const Navbar: React.FC = () => {
                           <div className="flex items-center gap-2 min-w-0">
                             <div
                               className={`w-6 h-6 rounded-md flex items-center justify-center text-[10px] font-black text-white shrink-0 ${
-                                tp.role === "Admin" ? "bg-amber-500" : "bg-emerald-500"
+                                tp.role === "Admin"
+                                  ? "bg-amber-500"
+                                  : "bg-emerald-500"
                               }`}
                             >
                               {tp.username.charAt(0).toUpperCase()}

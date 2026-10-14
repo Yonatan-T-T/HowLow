@@ -26,7 +26,9 @@ export const Login: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
-  const [selectedRoleFilter, setSelectedRoleFilter] = useState<"ALL" | "Admin" | "User">("ALL");
+  const [selectedRoleFilter, setSelectedRoleFilter] = useState<
+    "ALL" | "Admin" | "User"
+  >("ALL");
 
   // Redirect destination after login if provided in location state
   const from = (location.state as any)?.from?.pathname || "/";
@@ -51,7 +53,9 @@ export const Login: React.FC = () => {
         setError(res.message);
       }
     } catch (err: any) {
-      setError(err?.message || "Failed to log in. Please check your credentials.");
+      setError(
+        err?.message || "Failed to log in. Please check your credentials.",
+      );
     } finally {
       setIsLoading(false);
     }
@@ -166,7 +170,11 @@ export const Login: React.FC = () => {
                   className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
                   aria-label={showPassword ? "Hide password" : "Show password"}
                 >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  {showPassword ? (
+                    <EyeOff className="w-4 h-4" />
+                  ) : (
+                    <Eye className="w-4 h-4" />
+                  )}
                 </button>
               </div>
             </div>
@@ -210,7 +218,8 @@ export const Login: React.FC = () => {
               </h2>
             </div>
             <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">
-              Instant login for evaluator &amp; testing profiles (2 Admins &amp; 5 Users).
+              Instant login for evaluator &amp; testing profiles (2 Admins &amp;
+              5 Users).
             </p>
 
             {/* Filter Pills */}
@@ -308,7 +317,9 @@ export const Login: React.FC = () => {
 
           <div className="mt-6 pt-4 border-t border-slate-200 dark:border-slate-800/60 flex items-center gap-2 text-[11px] text-slate-500 dark:text-slate-400">
             <ShieldCheck className="w-4 h-4 text-emerald-500 shrink-0" />
-            <span>PBKDF2 SHA-256 salted credentials with secure JWT bearer tokens.</span>
+            <span>
+              PBKDF2 SHA-256 salted credentials with secure JWT bearer tokens.
+            </span>
           </div>
         </div>
       </div>

@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { 
-  X, 
-  Copy, 
-  Check, 
-  Clock, 
-  AlertCircle, 
-  RefreshCw, 
-  History, 
-  Send
+import {
+  X,
+  Copy,
+  Check,
+  Clock,
+  AlertCircle,
+  RefreshCw,
+  History,
+  Send,
 } from "lucide-react";
 import { useUser } from "../context/UserContext";
 import { api } from "../services/api";
@@ -25,14 +25,16 @@ export const WalletTopUpModal: React.FC = () => {
   const [transactionNumber, setTransactionNumber] = useState<string>("");
   const [agentAccount, setAgentAccount] = useState<AgentAccount>({
     receiverPhoneNumber: "0942618861",
-    receiverName: "Tekleweyni alemayehu brhane"
+    receiverName: "Tekleweyni alemayehu brhane",
   });
 
   // UI helpers
   const [copiedField, setCopiedField] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const [successRequest, setSuccessRequest] = useState<TopUpRequest | null>(null);
+  const [successRequest, setSuccessRequest] = useState<TopUpRequest | null>(
+    null,
+  );
   const [myRequests, setMyRequests] = useState<TopUpRequest[]>([]);
   const [isLoadingRequests, setIsLoadingRequests] = useState<boolean>(false);
 
@@ -59,13 +61,14 @@ export const WalletTopUpModal: React.FC = () => {
       setSuccessRequest(null);
 
       // Fetch fresh random receiver account
-      api.getAgentAccount()
+      api
+        .getAgentAccount()
         .then((acc) => setAgentAccount(acc))
         .catch(() => {
           // fallback default
           setAgentAccount({
             receiverPhoneNumber: "0942618861",
-            receiverName: "Tekleweyni alemayehu brhane"
+            receiverName: "Tekleweyni alemayehu brhane",
           });
         });
 
@@ -114,7 +117,9 @@ export const WalletTopUpModal: React.FC = () => {
     }
 
     if (!transactionNumber.trim() || transactionNumber.trim().length < 6) {
-      setErrorMsg("Please enter a valid Telebirr transaction number (at least 6 characters).");
+      setErrorMsg(
+        "Please enter a valid Telebirr transaction number (at least 6 characters).",
+      );
       return;
     }
 
@@ -127,7 +132,7 @@ export const WalletTopUpModal: React.FC = () => {
         receiverPhoneNumber: agentAccount.receiverPhoneNumber,
         receiverName: agentAccount.receiverName,
         transactionNumber: transactionNumber.trim(),
-        senderPhoneNumber: senderPhone.trim() || currentUser.phoneNumber
+        senderPhoneNumber: senderPhone.trim() || currentUser.phoneNumber,
       });
 
       setSuccessRequest(created);
@@ -135,7 +140,10 @@ export const WalletTopUpModal: React.FC = () => {
       await refreshUser();
       setTransactionNumber("");
     } catch (err: any) {
-      setErrorMsg(err.response?.data?.message || "Failed to submit top-up request. Please verify the transaction details.");
+      setErrorMsg(
+        err.response?.data?.message ||
+          "Failed to submit top-up request. Please verify the transaction details.",
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -222,7 +230,9 @@ export const WalletTopUpModal: React.FC = () => {
           </div>
 
           <div className="text-right">
-            <span className="text-[10px] text-slate-500 dark:text-slate-400 block">Balance:</span>
+            <span className="text-[10px] text-slate-500 dark:text-slate-400 block">
+              Balance:
+            </span>
             <span className="text-xs font-mono font-bold text-emerald-600 dark:text-emerald-400">
               ${currentUser.balance.toFixed(2)}
             </span>
@@ -248,7 +258,8 @@ export const WalletTopUpModal: React.FC = () => {
                     <strong className="font-mono text-slate-900 dark:text-white">
                       {successRequest.transactionNumber}
                     </strong>{" "}
-                    has been recorded. An administrator will verify the Telebirr transfer and credit your wallet.
+                    has been recorded. An administrator will verify the Telebirr
+                    transfer and credit your wallet.
                   </p>
                 </div>
               </div>
@@ -270,7 +281,8 @@ export const WalletTopUpModal: React.FC = () => {
               <div className="flex justify-between py-1 border-b border-slate-200 dark:border-slate-800/80">
                 <span className="text-slate-500">Sent to:</span>
                 <span className="font-mono text-slate-800 dark:text-slate-200">
-                  {successRequest.receiverPhoneNumber} ({successRequest.receiverName})
+                  {successRequest.receiverPhoneNumber} (
+                  {successRequest.receiverName})
                 </span>
               </div>
               <div className="flex justify-between py-1">
@@ -308,7 +320,9 @@ export const WalletTopUpModal: React.FC = () => {
                 onClick={fetchMyRequests}
                 className="text-xs text-[#008FD5] hover:underline flex items-center gap-1"
               >
-                <RefreshCw className={`w-3 h-3 ${isLoadingRequests ? 'animate-spin' : ''}`} />
+                <RefreshCw
+                  className={`w-3 h-3 ${isLoadingRequests ? "animate-spin" : ""}`}
+                />
                 <span>Refresh</span>
               </button>
             </div>
@@ -333,17 +347,21 @@ export const WalletTopUpModal: React.FC = () => {
                           req.status === "Approved"
                             ? "bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border-emerald-500/30"
                             : req.status === "Rejected"
-                            ? "bg-rose-500/20 text-rose-700 dark:text-rose-400 border-rose-500/30"
-                            : "bg-amber-500/20 text-amber-700 dark:text-amber-400 border-amber-500/30 animate-pulse"
+                              ? "bg-rose-500/20 text-rose-700 dark:text-rose-400 border-rose-500/30"
+                              : "bg-amber-500/20 text-amber-700 dark:text-amber-400 border-amber-500/30 animate-pulse"
                         }`}
                       >
-                        {req.status === "Pending" ? "Pending Approval" : req.status}
+                        {req.status === "Pending"
+                          ? "Pending Approval"
+                          : req.status}
                       </span>
                     </div>
 
                     <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 font-mono">
                       <span>Txn: {req.transactionNumber}</span>
-                      <span>{new Date(req.createdAt).toLocaleDateString()}</span>
+                      <span>
+                        {new Date(req.createdAt).toLocaleDateString()}
+                      </span>
                     </div>
 
                     <div className="text-[10px] text-slate-500 truncate">
@@ -398,7 +416,9 @@ export const WalletTopUpModal: React.FC = () => {
                 </div>
                 <button
                   type="button"
-                  onClick={() => handleCopy(agentAccount.receiverPhoneNumber, "phone")}
+                  onClick={() =>
+                    handleCopy(agentAccount.receiverPhoneNumber, "phone")
+                  }
                   className="p-1 text-[#5b8a3c] hover:text-[#456b2c] dark:text-emerald-400 transition-colors"
                   title="Copy Phone Number"
                 >
@@ -503,11 +523,15 @@ export const WalletTopUpModal: React.FC = () => {
                 required
                 placeholder="e.g. CIL45G7X89 or transaction code"
                 value={transactionNumber}
-                onChange={(e) => setTransactionNumber(e.target.value.toUpperCase())}
+                onChange={(e) =>
+                  setTransactionNumber(e.target.value.toUpperCase())
+                }
                 className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-mono text-sm focus:outline-none focus:ring-2 focus:ring-[#008FD5]/40 focus:border-[#008FD5] uppercase placeholder:normal-case placeholder-slate-400"
               />
               <span className="text-[10px] text-slate-500 dark:text-slate-400 block mt-1">
-                After completing the transfer in your Telebirr app, enter the transaction number here and submit for administrator verification.
+                After completing the transfer in your Telebirr app, enter the
+                transaction number here and submit for administrator
+                verification.
               </span>
             </div>
 

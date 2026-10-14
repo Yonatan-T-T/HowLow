@@ -124,7 +124,7 @@ export const UserPostItem: React.FC = () => {
   // Formula: 0.60 * (breakevenEntrants * numRegFee) >= totalSellerCost
   const breakevenEntrants = Math.max(
     1,
-    Math.ceil(totalSellerCost / (SELLER_SHARE_RATIO * numRegFee))
+    Math.ceil(totalSellerCost / (SELLER_SHARE_RATIO * numRegFee)),
   );
 
   const [entrantScenario, setEntrantScenario] = useState<
@@ -137,17 +137,17 @@ export const UserPostItem: React.FC = () => {
     entrantScenario === "breakeven"
       ? breakevenEntrants
       : entrantScenario === "target"
-      ? Math.ceil(breakevenEntrants * 1.25)
-      : entrantScenario === "high"
-      ? Math.ceil(breakevenEntrants * 1.5)
-      : Math.max(1, customEntrants || breakevenEntrants);
+        ? Math.ceil(breakevenEntrants * 1.25)
+        : entrantScenario === "high"
+          ? Math.ceil(breakevenEntrants * 1.5)
+          : Math.max(1, customEntrants || breakevenEntrants);
 
   const estimatedGrossRevenue = Math.round(numRegFee * simulatedEntrants);
   const estimatedSellerShare = Math.round(
-    estimatedGrossRevenue * SELLER_SHARE_RATIO
+    estimatedGrossRevenue * SELLER_SHARE_RATIO,
   );
   const estimatedSystemShare = Math.round(
-    estimatedGrossRevenue * SYSTEM_SHARE_RATIO
+    estimatedGrossRevenue * SYSTEM_SHARE_RATIO,
   );
 
   // Real Net Profit = Seller Payout - Total Cost (Retail Value + 1,000 ETB Listing Fee)
@@ -789,25 +789,32 @@ export const UserPostItem: React.FC = () => {
                 </h3>
               </div>
               <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
-                Live simulation based on the <strong>60% Seller / 40% Platform</strong> revenue split rule.
+                Live simulation based on the{" "}
+                <strong>60% Seller / 40% Platform</strong> revenue split rule.
               </p>
 
               {/* Baseline Cost Breakdown */}
               <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 space-y-2">
                 <div className="flex items-center justify-between text-xs">
-                  <span className="text-slate-500 dark:text-slate-400">Item Retail Value:</span>
+                  <span className="text-slate-500 dark:text-slate-400">
+                    Item Retail Value:
+                  </span>
                   <span className="font-mono font-bold text-slate-900 dark:text-white">
                     {numRetailValue.toLocaleString()} ETB
                   </span>
                 </div>
                 <div className="flex items-center justify-between text-xs">
-                  <span className="text-slate-500 dark:text-slate-400">Listing Submission Fee:</span>
+                  <span className="text-slate-500 dark:text-slate-400">
+                    Listing Submission Fee:
+                  </span>
                   <span className="font-mono font-bold text-slate-900 dark:text-white">
                     {LISTING_FEE.toLocaleString()} ETB
                   </span>
                 </div>
                 <div className="flex items-center justify-between text-xs pt-1 border-t border-slate-200 dark:border-slate-800">
-                  <span className="font-bold text-slate-700 dark:text-slate-300">Total Seller Cost:</span>
+                  <span className="font-bold text-slate-700 dark:text-slate-300">
+                    Total Seller Cost:
+                  </span>
                   <span className="font-mono font-bold text-slate-900 dark:text-white">
                     {totalSellerCost.toLocaleString()} ETB
                   </span>
@@ -883,9 +890,21 @@ export const UserPostItem: React.FC = () => {
                     className="w-full accent-emerald-500 cursor-pointer"
                   />
                   <div className="flex items-center justify-between text-[10px] text-slate-400 font-mono mt-1">
-                    <span>Min: {Math.max(10, Math.floor(breakevenEntrants * 0.5)).toLocaleString()}</span>
+                    <span>
+                      Min:{" "}
+                      {Math.max(
+                        10,
+                        Math.floor(breakevenEntrants * 0.5),
+                      ).toLocaleString()}
+                    </span>
                     <span>Breakeven: {breakevenEntrants.toLocaleString()}</span>
-                    <span>Max: {Math.max(100, Math.ceil(breakevenEntrants * 2.5)).toLocaleString()}</span>
+                    <span>
+                      Max:{" "}
+                      {Math.max(
+                        100,
+                        Math.ceil(breakevenEntrants * 2.5),
+                      ).toLocaleString()}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -893,13 +912,17 @@ export const UserPostItem: React.FC = () => {
               {/* Pool & Split Breakdown */}
               <div className="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800 text-xs">
                 <div className="flex items-center justify-between py-1">
-                  <span className="text-slate-500 dark:text-slate-400">Entry Fee:</span>
+                  <span className="text-slate-500 dark:text-slate-400">
+                    Entry Fee:
+                  </span>
                   <span className="font-mono font-bold text-slate-900 dark:text-white">
                     {numRegFee} ETB
                   </span>
                 </div>
                 <div className="flex items-center justify-between py-1">
-                  <span className="text-slate-500 dark:text-slate-400">Gross Auction Pool:</span>
+                  <span className="text-slate-500 dark:text-slate-400">
+                    Gross Auction Pool:
+                  </span>
                   <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400">
                     {estimatedGrossRevenue.toLocaleString()} ETB
                   </span>
@@ -943,7 +966,9 @@ export const UserPostItem: React.FC = () => {
               >
                 <div className="flex items-center justify-between mb-1">
                   <span className="text-[10px] font-bold uppercase tracking-wider">
-                    {estimatedNetProfit >= 0 ? "Estimated Net Profit" : "Projected Shortfall"}
+                    {estimatedNetProfit >= 0
+                      ? "Estimated Net Profit"
+                      : "Projected Shortfall"}
                   </span>
                   <span
                     className={`text-xs font-mono font-bold px-2 py-0.5 rounded-full ${
@@ -952,7 +977,9 @@ export const UserPostItem: React.FC = () => {
                         : "bg-amber-500/20 text-amber-700 dark:text-amber-300"
                     }`}
                   >
-                    {estimatedNetProfit >= 0 ? `+${estimatedProfitMargin}%` : `${estimatedProfitMargin}%`}
+                    {estimatedNetProfit >= 0
+                      ? `+${estimatedProfitMargin}%`
+                      : `${estimatedProfitMargin}%`}
                   </span>
                 </div>
 
@@ -979,7 +1006,11 @@ export const UserPostItem: React.FC = () => {
               <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 text-[11px] text-slate-600 dark:text-slate-400 flex items-start gap-2">
                 <Info className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
                 <span>
-                  <strong>Formula:</strong> 60% Payout ({estimatedSellerShare.toLocaleString()} ETB) − Item Cost ({numRetailValue.toLocaleString()} ETB) − Listing Fee (1,000 ETB) = {estimatedNetProfit >= 0 ? "+" : ""}{estimatedNetProfit.toLocaleString()} ETB.
+                  <strong>Formula:</strong> 60% Payout (
+                  {estimatedSellerShare.toLocaleString()} ETB) − Item Cost (
+                  {numRetailValue.toLocaleString()} ETB) − Listing Fee (1,000
+                  ETB) = {estimatedNetProfit >= 0 ? "+" : ""}
+                  {estimatedNetProfit.toLocaleString()} ETB.
                 </span>
               </div>
             </div>

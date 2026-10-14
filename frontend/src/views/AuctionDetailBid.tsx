@@ -1,38 +1,41 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import confetti from 'canvas-confetti';
-import { 
-  ArrowLeft, 
-  Trophy, 
-  Tag, 
-  EyeOff, 
-  AlertCircle, 
-  CheckCircle2, 
-  Wallet, 
-  Sparkles, 
-  Coins, 
+import React, { useState, useEffect, useCallback } from "react";
+import { useParams, Link } from "react-router-dom";
+import confetti from "canvas-confetti";
+import {
+  ArrowLeft,
+  Trophy,
+  Tag,
+  EyeOff,
+  AlertCircle,
+  CheckCircle2,
+  Wallet,
+  Sparkles,
+  Coins,
   RefreshCw,
   ShieldAlert,
-  Lock
-} from 'lucide-react';
-import type { AuctionItem, Bid } from '../types/auction';
-import { api } from '../services/api';
-import { useUser } from '../context/UserContext';
-import { LiveCountdown } from '../components/LiveCountdown';
+  Lock,
+} from "lucide-react";
+import type { AuctionItem, Bid } from "../types/auction";
+import { api } from "../services/api";
+import { useUser } from "../context/UserContext";
+import { LiveCountdown } from "../components/LiveCountdown";
 
 export const AuctionDetailBid: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const auctionId = parseInt(id || '0', 10);
+  const auctionId = parseInt(id || "0", 10);
   const { currentUser, refreshUser, openTopUp } = useUser();
-  const isAdmin = currentUser?.role === 'Admin';
+  const isAdmin = currentUser?.role === "Admin";
 
   const [auction, setAuction] = useState<AuctionItem | null>(null);
   const [myBids, setMyBids] = useState<Bid[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [bidAmount, setBidAmount] = useState<string>('');
+  const [bidAmount, setBidAmount] = useState<string>("");
   const [isSubmittingBid, setIsSubmittingBid] = useState<boolean>(false);
   const [isRegistering, setIsRegistering] = useState<boolean>(false);
-  const [notification, setNotification] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+  const [notification, setNotification] = useState<{
+    type: "success" | "error";
+    message: string;
+  } | null>(null);
 
   const fetchAuctionDetails = useCallback(async () => {
     if (!auctionId) return;
@@ -46,10 +49,11 @@ export const AuctionDetailBid: React.FC = () => {
         setMyBids(bids);
       }
     } catch (err: any) {
-      console.error('Failed to load auction details:', err);
+      console.error("Failed to load auction details:", err);
       setNotification({
-        type: 'error',
-        message: err.response?.data?.message || 'Failed to load auction details.',
+        type: "error",
+        message:
+          err.response?.data?.message || "Failed to load auction details.",
       });
     } finally {
       setIsLoading(false);
@@ -62,7 +66,7 @@ export const AuctionDetailBid: React.FC = () => {
 
   // Trigger celebration confetti if closed with a winner
   useEffect(() => {
-    if (auction?.status === 'Closed' && auction.winnerUsername) {
+    if (auction?.status === "Closed" && auction.winnerUsername) {
       confetti({
         particleCount: 50,
         spread: 60,
@@ -75,17 +79,17 @@ export const AuctionDetailBid: React.FC = () => {
   const handleRegister = async () => {
     if (!currentUser || !auction) return;
 
-    if (currentUser.role === 'Admin') {
+    if (currentUser.role === "Admin") {
       setNotification({
-        type: 'error',
-        message: 'Admins cannot register or place bids on auctions.',
+        type: "error",
+        message: "Admins cannot register or place bids on auctions.",
       });
       return;
     }
 
     if (currentUser.balance < auction.registrationFee) {
       setNotification({
-        type: 'error',
+        type: "error",
         message: `Insufficient balance! Registration requires $${auction.registrationFee.toFixed(2)}, but your wallet has $${currentUser.balance.toFixed(2)}. Please top up your wallet.`,
       });
       return;
@@ -97,16 +101,18 @@ export const AuctionDetailBid: React.FC = () => {
       const res = await api.registerForAuction(auction.id, currentUser.id);
       if (res.success) {
         setNotification({
-          type: 'success',
-          message: res.message || 'Successfully registered! You can now place secret bids.',
+          type: "success",
+          message:
+            res.message ||
+            "Successfully registered! You can now place secret bids.",
         });
         await refreshUser();
         await fetchAuctionDetails();
       }
     } catch (err: any) {
       setNotification({
-        type: 'error',
-        message: err.response?.data?.message || 'Registration failed.',
+        type: "error",
+        message: err.response?.data?.message || "Registration failed.",
       });
     } finally {
       setIsRegistering(false);
@@ -118,18 +124,22 @@ export const AuctionDetailBid: React.FC = () => {
     e.preventDefault();
     if (!currentUser || !auction) return;
 
-    if (currentUser.role === 'Admin') {
+    if (currentUser.role === "Admin") {
       setNotification({
-        type: 'error',
-        message: 'Admins cannot register or place bids on auctions.',
+        type: "error",
+        message: "Admins cannot register or place bids on auctions.",
       });
       return;
     }
 
-    if (myBids.length > 0 || (auction.userBidsCount && auction.userBidsCount > 0)) {
+    if (
+      myBids.length > 0 ||
+      (auction.userBidsCount && auction.userBidsCount > 0)
+    ) {
       setNotification({
-        type: 'error',
-        message: 'You have already placed your bid for this auction. Each registered bidder is limited to 1 bid per auction.',
+        type: "error",
+        message:
+          "You have already placed your bid for this auction. Each registered bidder is limited to 1 bid per auction.",
       });
       return;
     }
@@ -137,8 +147,8 @@ export const AuctionDetailBid: React.FC = () => {
     const amountNum = parseFloat(bidAmount);
     if (isNaN(amountNum) || amountNum <= 0) {
       setNotification({
-        type: 'error',
-        message: 'Please enter a valid bid amount greater than $0.00.',
+        type: "error",
+        message: "Please enter a valid bid amount greater than $0.00.",
       });
       return;
     }
@@ -149,16 +159,16 @@ export const AuctionDetailBid: React.FC = () => {
       const res = await api.placeBid(auction.id, amountNum, currentUser.id);
       if (res.success) {
         setNotification({
-          type: 'success',
+          type: "success",
           message: `Secret bid of $${amountNum.toFixed(2)} placed!`,
         });
-        setBidAmount('');
+        setBidAmount("");
         await fetchAuctionDetails();
       }
     } catch (err: any) {
       setNotification({
-        type: 'error',
-        message: err.response?.data?.message || 'Failed to place bid.',
+        type: "error",
+        message: err.response?.data?.message || "Failed to place bid.",
       });
     } finally {
       setIsSubmittingBid(false);
@@ -169,7 +179,9 @@ export const AuctionDetailBid: React.FC = () => {
     return (
       <div className="max-w-6xl mx-auto px-4 py-20 text-center">
         <RefreshCw className="w-8 h-8 text-emerald-500 dark:text-emerald-400 animate-spin mx-auto mb-4" />
-        <p className="text-slate-600 dark:text-slate-400 text-sm">Loading auction details...</p>
+        <p className="text-slate-600 dark:text-slate-400 text-sm">
+          Loading auction details...
+        </p>
       </div>
     );
   }
@@ -177,8 +189,12 @@ export const AuctionDetailBid: React.FC = () => {
   if (!auction) {
     return (
       <div className="max-w-xl mx-auto px-4 py-24 text-center">
-        <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Auction Not Found</h2>
-        <p className="text-slate-600 dark:text-slate-400 text-sm mt-2">The auction you are looking for does not exist or was removed.</p>
+        <h2 className="text-2xl font-bold text-slate-900 dark:text-white">
+          Auction Not Found
+        </h2>
+        <p className="text-slate-600 dark:text-slate-400 text-sm mt-2">
+          The auction you are looking for does not exist or was removed.
+        </p>
         <Link
           to="/"
           className="mt-6 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs transition-colors"
@@ -189,17 +205,18 @@ export const AuctionDetailBid: React.FC = () => {
     );
   }
 
-  const isCancelled = auction.status === 'Cancelled';
-  const isActive = auction.status === 'Active';
+  const isCancelled = auction.status === "Cancelled";
+  const isActive = auction.status === "Active";
   const isUserWinner = auction.winnerUserId === currentUser?.id;
   const isSeller = !!currentUser && auction.sellerUserId === currentUser.id;
 
   const savingsAmount = auction.winningBidAmount
     ? Math.max(0, auction.retailValue - auction.winningBidAmount)
     : 0;
-  const savingsPercent = auction.winningBidAmount && auction.retailValue > 0
-    ? Math.round((savingsAmount / auction.retailValue) * 100)
-    : 0;
+  const savingsPercent =
+    auction.winningBidAmount && auction.retailValue > 0
+      ? Math.round((savingsAmount / auction.retailValue) * 100)
+      : 0;
 
   // Quick bid amount suggestion chips
   const quickBidSuggestions = [0.05, 0.12, 0.23, 0.47, 0.88, 1.25];
@@ -219,7 +236,6 @@ export const AuctionDetailBid: React.FC = () => {
 
       {/* Main Grid: Left Specs & Image, Right Bidding Actions */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10">
-        
         {/* Left Column (5 cols): Media & Product Information */}
         <div className="lg:col-span-5 space-y-6">
           <div className="relative aspect-[4/3] rounded-3xl overflow-hidden bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl">
@@ -229,7 +245,7 @@ export const AuctionDetailBid: React.FC = () => {
               className="w-full h-full object-cover object-center"
               onError={(e) => {
                 (e.target as HTMLImageElement).src =
-                  'https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=800&q=80';
+                  "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=800&q=80";
               }}
             />
             <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-transparent to-transparent" />
@@ -279,28 +295,36 @@ export const AuctionDetailBid: React.FC = () => {
                 <span className="font-bold block uppercase tracking-wider text-[10px] text-amber-700 dark:text-amber-400">
                   Authenticity &amp; Condition Declaration:
                 </span>
-                <p className="mt-0.5 italic">"{auction.authenticityDeclaration}"</p>
+                <p className="mt-0.5 italic">
+                  "{auction.authenticityDeclaration}"
+                </p>
               </div>
             )}
 
             {/* Quick Metrics */}
             <div className="mt-6 pt-6 border-t border-slate-200 dark:border-slate-800/80 grid grid-cols-3 gap-2 text-center">
               <div className="p-2.5 rounded-2xl bg-slate-50 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800/60">
-                <span className="text-[10px] uppercase font-semibold text-slate-500 dark:text-slate-400 block">Entry Fee</span>
+                <span className="text-[10px] uppercase font-semibold text-slate-500 dark:text-slate-400 block">
+                  Entry Fee
+                </span>
                 <span className="font-mono font-bold text-slate-900 dark:text-white text-sm">
                   ${auction.registrationFee.toFixed(2)}
                 </span>
               </div>
 
               <div className="p-2.5 rounded-2xl bg-slate-50 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800/60">
-                <span className="text-[10px] uppercase font-semibold text-slate-500 dark:text-slate-400 block">Bidders</span>
+                <span className="text-[10px] uppercase font-semibold text-slate-500 dark:text-slate-400 block">
+                  Bidders
+                </span>
                 <span className="font-mono font-bold text-slate-900 dark:text-white text-sm">
                   {auction.totalRegistrations}
                 </span>
               </div>
 
               <div className="p-2.5 rounded-2xl bg-slate-50 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800/60">
-                <span className="text-[10px] uppercase font-semibold text-slate-500 dark:text-slate-400 block">Total Bids</span>
+                <span className="text-[10px] uppercase font-semibold text-slate-500 dark:text-slate-400 block">
+                  Total Bids
+                </span>
                 <span className="font-mono font-bold text-slate-900 dark:text-white text-sm">
                   {auction.totalBids}
                 </span>
@@ -311,7 +335,9 @@ export const AuctionDetailBid: React.FC = () => {
             <div className="mt-5 p-3.5 rounded-2xl bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-200 dark:border-indigo-800/40 flex items-start gap-2.5 text-xs text-indigo-900 dark:text-indigo-200">
               <EyeOff className="w-4 h-4 text-indigo-600 dark:text-indigo-400 shrink-0 mt-0.5" />
               <span>
-                <strong>Blind Bidding Privacy:</strong> All bids are encrypted and blind until auction resolution. No competitor can see your bids.
+                <strong>Blind Bidding Privacy:</strong> All bids are encrypted
+                and blind until auction resolution. No competitor can see your
+                bids.
               </span>
             </div>
           </div>
@@ -319,18 +345,17 @@ export const AuctionDetailBid: React.FC = () => {
 
         {/* Right Column (7 cols): Timer, Registration & Bidding Console */}
         <div className="lg:col-span-7 space-y-6">
-          
           {/* Notification Alert */}
           {notification && (
             <div
               className={`p-4 rounded-2xl border text-xs sm:text-sm flex items-center justify-between gap-3 animate-fade-in ${
-                notification.type === 'success'
-                  ? 'bg-emerald-50 dark:bg-emerald-950/50 border-emerald-300 dark:border-emerald-500/50 text-emerald-800 dark:text-emerald-300'
-                  : 'bg-rose-50 dark:bg-rose-950/50 border-rose-300 dark:border-rose-500/50 text-rose-800 dark:text-rose-300'
+                notification.type === "success"
+                  ? "bg-emerald-50 dark:bg-emerald-950/50 border-emerald-300 dark:border-emerald-500/50 text-emerald-800 dark:text-emerald-300"
+                  : "bg-rose-50 dark:bg-rose-950/50 border-rose-300 dark:border-rose-500/50 text-rose-800 dark:text-rose-300"
               }`}
             >
               <div className="flex items-center gap-2.5">
-                {notification.type === 'success' ? (
+                {notification.type === "success" ? (
                   <CheckCircle2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400 shrink-0" />
                 ) : (
                   <AlertCircle className="w-5 h-5 text-rose-600 dark:text-rose-400 shrink-0" />
@@ -360,13 +385,13 @@ export const AuctionDetailBid: React.FC = () => {
                       Live & Accepting Bids
                     </span>
                   )}
-                  {auction.status === 'Closed' && (
+                  {auction.status === "Closed" && (
                     <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-500/15 text-amber-800 dark:text-amber-300 border border-amber-500/30">
                       <Trophy className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
                       Auction Settled
                     </span>
                   )}
-                  {auction.status === 'NoWinner' && (
+                  {auction.status === "NoWinner" && (
                     <span className="px-3 py-1 rounded-full text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
                       No Winner (All Bids Tied)
                     </span>
@@ -386,7 +411,7 @@ export const AuctionDetailBid: React.FC = () => {
             </div>
 
             {/* WINNER ANNOUNCEMENT BANNER (If Closed) */}
-            {auction.status === 'Closed' && auction.winnerUsername && (
+            {auction.status === "Closed" && auction.winnerUsername && (
               <div className="mt-6 p-6 rounded-2xl bg-gradient-to-r from-amber-500/15 via-amber-500/5 to-transparent border border-amber-500/30 text-slate-900 dark:text-white relative overflow-hidden animate-slide-up">
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex items-center gap-3">
@@ -398,10 +423,10 @@ export const AuctionDetailBid: React.FC = () => {
                         Official Winner Declared
                       </span>
                       <h3 className="text-xl font-black text-slate-900 dark:text-white">
-                        {auction.winnerUsername} {isUserWinner ? '(You!)' : ''}
+                        {auction.winnerUsername} {isUserWinner ? "(You!)" : ""}
                       </h3>
                       <p className="text-xs text-slate-600 dark:text-slate-300 mt-0.5">
-                        Won with the Lowest Unique Bid of{' '}
+                        Won with the Lowest Unique Bid of{" "}
                         <strong className="text-emerald-600 dark:text-emerald-400 font-mono text-sm">
                           ${auction.winningBidAmount?.toFixed(2)}
                         </strong>
@@ -424,7 +449,8 @@ export const AuctionDetailBid: React.FC = () => {
 
                 <div className="mt-4 pt-4 border-t border-amber-500/20 flex items-center justify-between text-xs">
                   <span className="text-slate-600 dark:text-slate-300">
-                    Transparent LINQ resolution completed. All duplicate bids were eliminated.
+                    Transparent LINQ resolution completed. All duplicate bids
+                    were eliminated.
                   </span>
                   <Link
                     to="/admin"
@@ -437,12 +463,17 @@ export const AuctionDetailBid: React.FC = () => {
             )}
 
             {/* TIED / NO WINNER BANNER */}
-            {auction.status === 'NoWinner' && (
+            {auction.status === "NoWinner" && (
               <div className="mt-6 p-5 rounded-2xl bg-slate-100 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-xs text-slate-700 dark:text-slate-300 flex items-center gap-3">
                 <AlertCircle className="w-5 h-5 text-amber-500 shrink-0" />
                 <div>
-                  <strong className="text-slate-900 dark:text-white block font-semibold">No Lowest Unique Bid Found</strong>
-                  <span>Every bid placed on this auction was duplicated by two or more bidders. The auction concluded with no winner.</span>
+                  <strong className="text-slate-900 dark:text-white block font-semibold">
+                    No Lowest Unique Bid Found
+                  </strong>
+                  <span>
+                    Every bid placed on this auction was duplicated by two or
+                    more bidders. The auction concluded with no winner.
+                  </span>
                 </div>
               </div>
             )}
@@ -460,7 +491,9 @@ export const AuctionDetailBid: React.FC = () => {
                       Log In to Participate in this Auction
                     </h4>
                     <p className="text-xs text-slate-600 dark:text-slate-400 mb-5 max-w-md mx-auto">
-                      Sign in or create a free bidder account ($100 starting bonus included) to register and place secret lowest-unique bids.
+                      Sign in or create a free bidder account ($100 starting
+                      bonus included) to register and place secret lowest-unique
+                      bids.
                     </p>
                     <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
                       <Link
@@ -486,20 +519,26 @@ export const AuctionDetailBid: React.FC = () => {
                       </div>
                       <div>
                         <div className="flex items-center gap-2">
-                          <h4 className="text-sm font-bold text-slate-900 dark:text-white">Admin Viewing Mode</h4>
+                          <h4 className="text-sm font-bold text-slate-900 dark:text-white">
+                            Admin Viewing Mode
+                          </h4>
                           <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/30">
                             Bidding Restricted
                           </span>
                         </div>
                         <p className="text-xs text-amber-800 dark:text-amber-300/80 mt-1">
-                          Administrators are prohibited from participating or placing bids in auctions to guarantee protocol fairness and prevent conflict of interest.
+                          Administrators are prohibited from participating or
+                          placing bids in auctions to guarantee protocol
+                          fairness and prevent conflict of interest.
                         </p>
                       </div>
                     </div>
 
                     <div className="mt-5 pt-4 border-t border-amber-500/20 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
                       <span className="text-slate-600 dark:text-slate-400">
-                        To test bidding, switch to a standard bidder persona (e.g. Bob or Charlie) via the top-right persona switcher.
+                        To test bidding, switch to a standard bidder persona
+                        (e.g. Bob or Charlie) via the top-right persona
+                        switcher.
                       </span>
                       <Link
                         to="/admin"
@@ -519,43 +558,57 @@ export const AuctionDetailBid: React.FC = () => {
                       </div>
                       <div>
                         <div className="flex items-center gap-2 flex-wrap">
-                          <h4 className="text-sm font-bold text-slate-900 dark:text-white">You Listed This Auction</h4>
+                          <h4 className="text-sm font-bold text-slate-900 dark:text-white">
+                            You Listed This Auction
+                          </h4>
                           <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-purple-500/20 text-purple-700 dark:text-purple-300 border border-purple-500/30">
                             Seller Dashboard (60% Profit)
                           </span>
                         </div>
                         <p className="text-xs text-purple-800 dark:text-purple-300/80 mt-1">
-                          Anti-Shill Protection: Sellers cannot bid on their own auctions to guarantee lowest unique bid fairness. Your 60% revenue share will automatically credit to your wallet when resolved!
+                          Anti-Shill Protection: Sellers cannot bid on their own
+                          auctions to guarantee lowest unique bid fairness. Your
+                          60% revenue share will automatically credit to your
+                          wallet when resolved!
                         </p>
                       </div>
                     </div>
 
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-2">
                       <div className="p-3 rounded-xl bg-white/60 dark:bg-slate-900/60 border border-purple-500/20">
-                        <span className="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400 block">Listing Fee Paid</span>
-                        <span className="text-sm font-mono font-bold text-slate-900 dark:text-white">1,000 ETB</span>
+                        <span className="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400 block">
+                          Listing Fee Paid
+                        </span>
+                        <span className="text-sm font-mono font-bold text-slate-900 dark:text-white">
+                          1,000 ETB
+                        </span>
                       </div>
                       <div className="p-3 rounded-xl bg-emerald-500/15 border border-emerald-500/30">
-                        <span className="text-[10px] uppercase font-bold text-emerald-700 dark:text-emerald-400 block">Your 60% Payout</span>
+                        <span className="text-[10px] uppercase font-bold text-emerald-700 dark:text-emerald-400 block">
+                          Your 60% Payout
+                        </span>
                         <span className="text-sm font-mono font-bold text-emerald-700 dark:text-emerald-300">
-                          {auction.sellerPayoutAmount 
-                            ? `${auction.sellerPayoutAmount.toFixed(2)} ETB` 
-                            : `~${Math.round(((auction.registrationFee * auction.totalRegistrations) + (auction.winningBidAmount || 0)) * 0.60)} ETB`}
+                          {auction.sellerPayoutAmount
+                            ? `${auction.sellerPayoutAmount.toFixed(2)} ETB`
+                            : `~${Math.round((auction.registrationFee * auction.totalRegistrations + (auction.winningBidAmount || 0)) * 0.6)} ETB`}
                         </span>
                       </div>
                       <div className="p-3 rounded-xl bg-purple-500/15 border border-purple-500/30">
-                        <span className="text-[10px] uppercase font-bold text-purple-700 dark:text-purple-400 block">System 40% Cut</span>
+                        <span className="text-[10px] uppercase font-bold text-purple-700 dark:text-purple-400 block">
+                          System 40% Cut
+                        </span>
                         <span className="text-sm font-mono font-bold text-purple-700 dark:text-purple-300">
-                          {auction.systemProfitAmount 
-                            ? `${auction.systemProfitAmount.toFixed(2)} ETB` 
-                            : `~${Math.round(((auction.registrationFee * auction.totalRegistrations) + (auction.winningBidAmount || 0)) * 0.40)} ETB`}
+                          {auction.systemProfitAmount
+                            ? `${auction.systemProfitAmount.toFixed(2)} ETB`
+                            : `~${Math.round((auction.registrationFee * auction.totalRegistrations + (auction.winningBidAmount || 0)) * 0.4)} ETB`}
                         </span>
                       </div>
                     </div>
 
                     <div className="pt-2 border-t border-purple-500/20 flex items-center justify-between text-xs">
                       <span className="text-slate-500 dark:text-slate-400">
-                        Total {auction.totalRegistrations} bidders registered &bull; {auction.totalBids} blind bids
+                        Total {auction.totalRegistrations} bidders registered
+                        &bull; {auction.totalBids} blind bids
                       </span>
                       <Link
                         to="/seller-hub"
@@ -573,25 +626,32 @@ export const AuctionDetailBid: React.FC = () => {
                         <Coins className="w-5 h-5" />
                       </div>
                       <div>
-                        <h4 className="text-sm font-bold text-slate-900 dark:text-white">Unlock Bidding Access</h4>
+                        <h4 className="text-sm font-bold text-slate-900 dark:text-white">
+                          Unlock Bidding Access
+                        </h4>
                         <p className="text-xs text-slate-600 dark:text-slate-400">
-                          Pay the nominal registration fee to participate in blind bidding
+                          Pay the nominal registration fee to participate in
+                          blind bidding
                         </p>
                       </div>
                     </div>
 
                     <div className="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800/80 mb-5 flex items-center justify-between">
                       <div>
-                        <span className="text-[11px] text-slate-500 dark:text-slate-400 uppercase font-semibold block">Entry Fee</span>
+                        <span className="text-[11px] text-slate-500 dark:text-slate-400 uppercase font-semibold block">
+                          Entry Fee
+                        </span>
                         <span className="text-lg font-mono font-bold text-slate-900 dark:text-white">
                           ${auction.registrationFee.toFixed(2)}
                         </span>
                       </div>
 
                       <div className="text-right">
-                        <span className="text-[11px] text-slate-500 dark:text-slate-400 uppercase font-semibold block">Your Wallet Balance</span>
+                        <span className="text-[11px] text-slate-500 dark:text-slate-400 uppercase font-semibold block">
+                          Your Wallet Balance
+                        </span>
                         <span className="text-lg font-mono font-bold text-emerald-600 dark:text-emerald-400">
-                          ${currentUser?.balance.toFixed(2) || '0.00'}
+                          ${currentUser?.balance.toFixed(2) || "0.00"}
                         </span>
                       </div>
                     </div>
@@ -607,29 +667,36 @@ export const AuctionDetailBid: React.FC = () => {
                         ) : (
                           <>
                             <Coins className="w-4 h-4" />
-                            <span>Pay ${auction.registrationFee.toFixed(2)} & Register</span>
+                            <span>
+                              Pay ${auction.registrationFee.toFixed(2)} &
+                              Register
+                            </span>
                           </>
                         )}
                       </button>
 
-                      {currentUser && currentUser.balance < auction.registrationFee && (
-                        <button
-                          onClick={openTopUp}
-                          className="py-3 px-4 rounded-xl bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-semibold text-xs transition-colors flex items-center justify-center gap-1.5"
-                        >
-                          <Wallet className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                          <span>Top Up Wallet</span>
-                        </button>
-                      )}
+                      {currentUser &&
+                        currentUser.balance < auction.registrationFee && (
+                          <button
+                            onClick={openTopUp}
+                            className="py-3 px-4 rounded-xl bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-semibold text-xs transition-colors flex items-center justify-center gap-1.5"
+                          >
+                            <Wallet className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                            <span>Top Up Wallet</span>
+                          </button>
+                        )}
                     </div>
                   </div>
-                ) : (myBids.length > 0 || (auction.userBidsCount && auction.userBidsCount > 0)) ? (
+                ) : myBids.length > 0 ||
+                  (auction.userBidsCount && auction.userBidsCount > 0) ? (
                   /* STEP 2A: Already Placed Bid - 1 Bid Per Auction Limit Reached */
                   <div className="p-6 rounded-2xl bg-slate-50 dark:bg-slate-950/60 border border-emerald-500/40 shadow-sm">
                     <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center gap-2">
                         <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                        <h4 className="text-sm font-bold text-slate-900 dark:text-white">Secret Bid Submitted</h4>
+                        <h4 className="text-sm font-bold text-slate-900 dark:text-white">
+                          Secret Bid Submitted
+                        </h4>
                       </div>
                       <span className="text-[11px] text-emerald-700 dark:text-emerald-400 font-semibold bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-500/20">
                         1 Bid Limit Reached
@@ -638,15 +705,23 @@ export const AuctionDetailBid: React.FC = () => {
 
                     <div className="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 mb-4 flex items-center justify-between">
                       <div>
-                        <span className="text-[11px] text-slate-500 dark:text-slate-400 uppercase font-semibold block">Your Sealed Secret Bid</span>
+                        <span className="text-[11px] text-slate-500 dark:text-slate-400 uppercase font-semibold block">
+                          Your Sealed Secret Bid
+                        </span>
                         <span className="text-xl font-mono font-bold text-emerald-600 dark:text-emerald-400">
-                          ${myBids[0]?.amount !== undefined ? myBids[0].amount.toFixed(2) : 'Submitted'}
+                          $
+                          {myBids[0]?.amount !== undefined
+                            ? myBids[0].amount.toFixed(2)
+                            : "Submitted"}
                         </span>
                       </div>
                       <div className="text-right">
-                        <span className="text-[11px] text-slate-500 dark:text-slate-400 uppercase font-semibold block">Protocol Status</span>
+                        <span className="text-[11px] text-slate-500 dark:text-slate-400 uppercase font-semibold block">
+                          Protocol Status
+                        </span>
                         <span className="inline-flex items-center gap-1 text-xs font-semibold text-slate-600 dark:text-slate-300">
-                          <EyeOff className="w-3.5 h-3.5 text-slate-400" /> Blind &amp; Encrypted
+                          <EyeOff className="w-3.5 h-3.5 text-slate-400" />{" "}
+                          Blind &amp; Encrypted
                         </span>
                       </div>
                     </div>
@@ -654,7 +729,11 @@ export const AuctionDetailBid: React.FC = () => {
                     <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-800 dark:text-amber-300 flex items-start gap-2.5">
                       <Lock className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
                       <span>
-                        <strong>Single Bid Rule:</strong> Under this auction protocol, each registered bidder is limited to <strong>1 bid per auction</strong> to ensure absolute fairness and strategic integrity. Your bid is securely locked until the auction ends.
+                        <strong>Single Bid Rule:</strong> Under this auction
+                        protocol, each registered bidder is limited to{" "}
+                        <strong>1 bid per auction</strong> to ensure absolute
+                        fairness and strategic integrity. Your bid is securely
+                        locked until the auction ends.
                       </span>
                     </div>
                   </div>
@@ -664,7 +743,9 @@ export const AuctionDetailBid: React.FC = () => {
                     <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center gap-2">
                         <div className="w-3 h-3 rounded-full bg-emerald-500 animate-pulse" />
-                        <h4 className="text-sm font-bold text-slate-900 dark:text-white">Submit Secret / Blind Bid</h4>
+                        <h4 className="text-sm font-bold text-slate-900 dark:text-white">
+                          Submit Secret / Blind Bid
+                        </h4>
                       </div>
                       <span className="text-[11px] text-emerald-700 dark:text-emerald-400 font-semibold bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-500/20">
                         1 Bid Available
@@ -697,13 +778,16 @@ export const AuctionDetailBid: React.FC = () => {
                           />
                         </div>
                         <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
-                          Rule: You may only place <strong>1 bid</strong> for this entire auction. Choose carefully!
+                          Rule: You may only place <strong>1 bid</strong> for
+                          this entire auction. Choose carefully!
                         </p>
                       </div>
 
                       {/* Quick Suggestion Chips */}
                       <div className="mb-5">
-                        <span className="text-[11px] text-slate-500 dark:text-slate-400 block mb-2 font-medium">Quick suggestions:</span>
+                        <span className="text-[11px] text-slate-500 dark:text-slate-400 block mb-2 font-medium">
+                          Quick suggestions:
+                        </span>
                         <div className="flex flex-wrap gap-2">
                           {quickBidSuggestions.map((amt) => (
                             <button
@@ -728,7 +812,10 @@ export const AuctionDetailBid: React.FC = () => {
                         ) : (
                           <>
                             <Sparkles className="w-4 h-4" />
-                            <span>Submit My Secret Bid (${parseFloat(bidAmount || '0').toFixed(2)})</span>
+                            <span>
+                              Submit My Secret Bid ($
+                              {parseFloat(bidAmount || "0").toFixed(2)})
+                            </span>
                           </>
                         )}
                       </button>
@@ -747,7 +834,10 @@ export const AuctionDetailBid: React.FC = () => {
                 <span>My Bids in This Auction ({myBids.length})</span>
               </h4>
               <span className="text-xs text-slate-500 dark:text-slate-400">
-                Persona: <strong className="text-slate-900 dark:text-white">{currentUser?.username}</strong>
+                Persona:{" "}
+                <strong className="text-slate-900 dark:text-white">
+                  {currentUser?.username}
+                </strong>
               </span>
             </div>
 
@@ -773,10 +863,12 @@ export const AuctionDetailBid: React.FC = () => {
                     </div>
 
                     <div>
-                      {auction.status === 'Closed' || auction.status === 'NoWinner' ? (
+                      {auction.status === "Closed" ||
+                      auction.status === "NoWinner" ? (
                         b.isWinner ? (
                           <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-500/20 text-amber-800 dark:text-amber-300 border border-amber-500/30">
-                            <Trophy className="w-3 h-3 text-amber-600 dark:text-amber-400" /> Winning Bid!
+                            <Trophy className="w-3 h-3 text-amber-600 dark:text-amber-400" />{" "}
+                            Winning Bid!
                           </span>
                         ) : b.isUniqueAfterResolution ? (
                           <span className="px-2 py-0.5 rounded text-[11px] font-medium bg-emerald-500/15 text-emerald-700 dark:text-emerald-300">
@@ -789,7 +881,8 @@ export const AuctionDetailBid: React.FC = () => {
                         )
                       ) : (
                         <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-transparent">
-                          <EyeOff className="w-3 h-3 text-slate-500" /> Blind / Secret
+                          <EyeOff className="w-3 h-3 text-slate-500" /> Blind /
+                          Secret
                         </span>
                       )}
                     </div>
@@ -799,12 +892,11 @@ export const AuctionDetailBid: React.FC = () => {
             ) : (
               <div className="py-6 text-center text-xs text-slate-500 dark:text-slate-400">
                 {auction.isUserRegistered
-                  ? 'No bids placed yet. Submit your first blind bid above!'
-                  : 'Register for this auction to start placing blind bids.'}
+                  ? "No bids placed yet. Submit your first blind bid above!"
+                  : "Register for this auction to start placing blind bids."}
               </div>
             )}
           </div>
-
         </div>
       </div>
     </div>

@@ -1,38 +1,49 @@
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { 
-  ShieldAlert, 
-  Plus, 
-  BarChart3, 
-  Trophy, 
-  AlertTriangle, 
-  RefreshCw, 
-  X, 
+import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+import {
+  ShieldAlert,
+  Plus,
+  BarChart3,
+  Trophy,
+  AlertTriangle,
+  RefreshCw,
+  X,
   Ban,
   Phone,
   CheckCircle2,
   XCircle,
   Clock,
   Copy,
-  Check
-} from 'lucide-react';
-import type { AuctionItem, AuctionAnalytics, ResolveAuctionResult, TopUpRequest } from '../types/auction';
-import { api } from '../services/api';
-import { LiveCountdown } from '../components/LiveCountdown';
+  Check,
+} from "lucide-react";
+import type {
+  AuctionItem,
+  AuctionAnalytics,
+  ResolveAuctionResult,
+  TopUpRequest,
+} from "../types/auction";
+import { api } from "../services/api";
+import { LiveCountdown } from "../components/LiveCountdown";
 
 export const AdminDashboard: React.FC = () => {
-  const [activeSection, setActiveSection] = useState<'auctions' | 'topups' | 'pending_items'>('auctions');
+  const [activeSection, setActiveSection] = useState<
+    "auctions" | "topups" | "pending_items"
+  >("auctions");
   const [auctions, setAuctions] = useState<AuctionItem[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [selectedAnalytics, setSelectedAnalytics] = useState<AuctionAnalytics | null>(null);
+  const [selectedAnalytics, setSelectedAnalytics] =
+    useState<AuctionAnalytics | null>(null);
   const [resolvingId, setResolvingId] = useState<number | null>(null);
-  const [resolutionResult, setResolutionResult] = useState<ResolveAuctionResult | null>(null);
+  const [resolutionResult, setResolutionResult] =
+    useState<ResolveAuctionResult | null>(null);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
 
   // Telebirr Top-Up Requests state
   const [topUpRequests, setTopUpRequests] = useState<TopUpRequest[]>([]);
   const [isLoadingTopUps, setIsLoadingTopUps] = useState<boolean>(false);
-  const [topUpFilter, setTopUpFilter] = useState<'All' | 'Pending' | 'Approved' | 'Rejected'>('All');
+  const [topUpFilter, setTopUpFilter] = useState<
+    "All" | "Pending" | "Approved" | "Rejected"
+  >("All");
   const [approvingId, setApprovingId] = useState<number | null>(null);
   const [rejectingId, setRejectingId] = useState<number | null>(null);
   const [copiedTxn, setCopiedTxn] = useState<string | null>(null);
@@ -40,17 +51,27 @@ export const AdminDashboard: React.FC = () => {
   // Pending User Submissions state
   const [pendingItems, setPendingItems] = useState<AuctionItem[]>([]);
   const [isLoadingPending, setIsLoadingPending] = useState<boolean>(false);
-  const [approvingPendingId, setApprovingPendingId] = useState<number | null>(null);
+  const [approvingPendingId, setApprovingPendingId] = useState<number | null>(
+    null,
+  );
 
   // Rejection Modal
-  const [rejectModalItem, setRejectModalItem] = useState<AuctionItem | null>(null);
-  const [rejectReason, setRejectReason] = useState<string>('Item photos or specifications do not satisfy brand-new listing guidelines.');
+  const [rejectModalItem, setRejectModalItem] = useState<AuctionItem | null>(
+    null,
+  );
+  const [rejectReason, setRejectReason] = useState<string>(
+    "Item photos or specifications do not satisfy brand-new listing guidelines.",
+  );
   const [rejectRefundFee, setRejectRefundFee] = useState<boolean>(false);
   const [isRejectingItem, setIsRejectingItem] = useState<boolean>(false);
 
   // Fraud / Non-Similarity Cancellation Modal
-  const [fraudModalItem, setFraudModalItem] = useState<AuctionItem | null>(null);
-  const [fraudReason, setFraudReason] = useState<string>('Item verified as not brand new / non-similar to description. 1,000 Birr fee forfeited.');
+  const [fraudModalItem, setFraudModalItem] = useState<AuctionItem | null>(
+    null,
+  );
+  const [fraudReason, setFraudReason] = useState<string>(
+    "Item verified as not brand new / non-similar to description. 1,000 Birr fee forfeited.",
+  );
   const [isCancellingFraud, setIsCancellingFraud] = useState<boolean>(false);
 
   const fetchAuctions = async () => {
@@ -59,7 +80,7 @@ export const AdminDashboard: React.FC = () => {
       const data = await api.getAuctions();
       setAuctions(data);
     } catch (err) {
-      console.error('Failed to load admin auctions:', err);
+      console.error("Failed to load admin auctions:", err);
     } finally {
       setIsLoading(false);
     }
@@ -71,7 +92,7 @@ export const AdminDashboard: React.FC = () => {
       const data = await api.getAllTopUpRequestsAdmin();
       setTopUpRequests(data);
     } catch (err) {
-      console.error('Failed to load topup requests:', err);
+      console.error("Failed to load topup requests:", err);
     } finally {
       setIsLoadingTopUps(false);
     }
@@ -83,7 +104,7 @@ export const AdminDashboard: React.FC = () => {
       const data = await api.getPendingItems();
       setPendingItems(data);
     } catch (err) {
-      console.error('Failed to load pending items:', err);
+      console.error("Failed to load pending items:", err);
     } finally {
       setIsLoadingPending(false);
     }
@@ -102,7 +123,7 @@ export const AdminDashboard: React.FC = () => {
       setStatusMessage(res.message);
       await Promise.all([fetchPendingItems(), fetchAuctions()]);
     } catch (err: any) {
-      alert(err.response?.data?.message || 'Failed to approve item');
+      alert(err.response?.data?.message || "Failed to approve item");
     } finally {
       setApprovingPendingId(null);
     }
@@ -114,13 +135,13 @@ export const AdminDashboard: React.FC = () => {
       setIsRejectingItem(true);
       const res = await api.rejectItem(rejectModalItem.id, {
         reason: rejectReason,
-        refundFee: rejectRefundFee
+        refundFee: rejectRefundFee,
       });
       setStatusMessage(res.message);
       setRejectModalItem(null);
       await Promise.all([fetchPendingItems(), fetchAuctions()]);
     } catch (err: any) {
-      alert(err.response?.data?.message || 'Failed to reject item');
+      alert(err.response?.data?.message || "Failed to reject item");
     } finally {
       setIsRejectingItem(false);
     }
@@ -131,13 +152,15 @@ export const AdminDashboard: React.FC = () => {
     try {
       setIsCancellingFraud(true);
       const res = await api.cancelFraudItem(fraudModalItem.id, {
-        reason: fraudReason
+        reason: fraudReason,
       });
       setStatusMessage(res.message);
       setFraudModalItem(null);
       await Promise.all([fetchPendingItems(), fetchAuctions()]);
     } catch (err: any) {
-      alert(err.response?.data?.message || 'Failed to cancel auction for fraud');
+      alert(
+        err.response?.data?.message || "Failed to cancel auction for fraud",
+      );
     } finally {
       setIsCancellingFraud(false);
     }
@@ -150,14 +173,17 @@ export const AdminDashboard: React.FC = () => {
       setStatusMessage(res.message);
       await fetchTopUps();
     } catch (err: any) {
-      alert(err.response?.data?.message || 'Failed to approve request');
+      alert(err.response?.data?.message || "Failed to approve request");
     } finally {
       setApprovingId(null);
     }
   };
 
   const handleRejectTopUp = async (id: number) => {
-    const reason = prompt("Enter rejection reason (optional):", "Transaction could not be verified on Telebirr.");
+    const reason = prompt(
+      "Enter rejection reason (optional):",
+      "Transaction could not be verified on Telebirr.",
+    );
     if (reason === null) return;
     try {
       setRejectingId(id);
@@ -165,7 +191,7 @@ export const AdminDashboard: React.FC = () => {
       setStatusMessage(res.message);
       await fetchTopUps();
     } catch (err: any) {
-      alert(err.response?.data?.message || 'Failed to reject request');
+      alert(err.response?.data?.message || "Failed to reject request");
     } finally {
       setRejectingId(null);
     }
@@ -185,7 +211,7 @@ export const AdminDashboard: React.FC = () => {
       setResolutionResult(res);
       await fetchAuctions();
     } catch (err: any) {
-      alert(err.response?.data?.message || 'Failed to resolve auction.');
+      alert(err.response?.data?.message || "Failed to resolve auction.");
     } finally {
       setResolvingId(null);
     }
@@ -197,34 +223,38 @@ export const AdminDashboard: React.FC = () => {
       const analytics = await api.getAuctionAnalytics(auctionId);
       setSelectedAnalytics(analytics);
     } catch (err) {
-      alert('Failed to load analytics.');
+      alert("Failed to load analytics.");
     }
   };
 
   // Cancel Auction
   const handleCancel = async (auctionId: number) => {
-    if (!confirm(`Are you sure you want to cancel auction #${auctionId}?`)) return;
+    if (!confirm(`Are you sure you want to cancel auction #${auctionId}?`))
+      return;
     try {
       await api.cancelAuction(auctionId);
       setStatusMessage(`Auction #${auctionId} was cancelled.`);
       await fetchAuctions();
     } catch (err) {
-      alert('Failed to cancel auction.');
+      alert("Failed to cancel auction.");
     }
   };
 
-  const totalFeesCollected = auctions.reduce((acc, a) => acc + (a.registrationFee * a.totalRegistrations), 0);
-  const activeCount = auctions.filter((a) => a.status === 'Active').length;
-  const closedCount = auctions.filter((a) => a.status === 'Closed').length;
+  const totalFeesCollected = auctions.reduce(
+    (acc, a) => acc + a.registrationFee * a.totalRegistrations,
+    0,
+  );
+  const activeCount = auctions.filter((a) => a.status === "Active").length;
+  const closedCount = auctions.filter((a) => a.status === "Closed").length;
 
-  const pendingTopUps = topUpRequests.filter(r => r.status === 'Pending');
-  const approvedTopUps = topUpRequests.filter(r => r.status === 'Approved');
+  const pendingTopUps = topUpRequests.filter((r) => r.status === "Pending");
+  const approvedTopUps = topUpRequests.filter((r) => r.status === "Approved");
   const totalTopUpETB = topUpRequests
-    .filter(r => r.status === 'Approved')
+    .filter((r) => r.status === "Approved")
     .reduce((acc, r) => acc + (r.amount || 0), 0);
 
-  const filteredTopUps = topUpRequests.filter(r => {
-    if (topUpFilter === 'All') return true;
+  const filteredTopUps = topUpRequests.filter((r) => {
+    if (topUpFilter === "All") return true;
     return r.status === topUpFilter;
   });
 
@@ -237,9 +267,12 @@ export const AdminDashboard: React.FC = () => {
             <ShieldAlert className="w-3.5 h-3.5" />
             <span>Administrator Control Center</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-black text-white">Auction Management & Analytics</h1>
+          <h1 className="text-2xl sm:text-3xl font-black text-white">
+            Auction Management & Analytics
+          </h1>
           <p className="text-xs sm:text-sm text-slate-400 mt-1">
-            Monitor live bidding, trigger lowest unique bid settlement, and inspect secret bid distributions.
+            Monitor live bidding, trigger lowest unique bid settlement, and
+            inspect secret bid distributions.
           </p>
         </div>
 
@@ -249,7 +282,9 @@ export const AdminDashboard: React.FC = () => {
             className="p-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 hover:text-white transition-colors"
             title="Refresh list"
           >
-            <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin text-emerald-400' : ''}`} />
+            <RefreshCw
+              className={`w-4 h-4 ${isLoading ? "animate-spin text-emerald-400" : ""}`}
+            />
           </button>
 
           <Link
@@ -265,11 +300,11 @@ export const AdminDashboard: React.FC = () => {
       {/* Section Switcher Tabs */}
       <div className="flex items-center gap-3 mt-6 border-b border-slate-200 dark:border-slate-800 pb-3">
         <button
-          onClick={() => setActiveSection('auctions')}
+          onClick={() => setActiveSection("auctions")}
           className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-bold transition-all ${
-            activeSection === 'auctions'
-              ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-md'
-              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white bg-slate-100 dark:bg-slate-900/60'
+            activeSection === "auctions"
+              ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-md"
+              : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white bg-slate-100 dark:bg-slate-900/60"
           }`}
         >
           <BarChart3 className="w-4 h-4" />
@@ -277,11 +312,11 @@ export const AdminDashboard: React.FC = () => {
         </button>
 
         <button
-          onClick={() => setActiveSection('pending_items')}
+          onClick={() => setActiveSection("pending_items")}
           className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-bold transition-all ${
-            activeSection === 'pending_items'
-              ? 'bg-purple-600 text-white shadow-md'
-              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white bg-slate-100 dark:bg-slate-900/60'
+            activeSection === "pending_items"
+              ? "bg-purple-600 text-white shadow-md"
+              : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white bg-slate-100 dark:bg-slate-900/60"
           }`}
         >
           <ShieldAlert className="w-4 h-4 text-purple-300" />
@@ -294,11 +329,11 @@ export const AdminDashboard: React.FC = () => {
         </button>
 
         <button
-          onClick={() => setActiveSection('topups')}
+          onClick={() => setActiveSection("topups")}
           className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-bold transition-all ${
-            activeSection === 'topups'
-              ? 'bg-[#008FD5] text-white shadow-md'
-              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white bg-slate-100 dark:bg-slate-900/60'
+            activeSection === "topups"
+              ? "bg-[#008FD5] text-white shadow-md"
+              : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white bg-slate-100 dark:bg-slate-900/60"
           }`}
         >
           <Phone className="w-4 h-4 text-emerald-400" />
@@ -311,242 +346,297 @@ export const AdminDashboard: React.FC = () => {
         </button>
       </div>
 
-      {activeSection === 'auctions' ? (
+      {activeSection === "auctions" ? (
         <>
           {/* Admin KPI Stats */}
-      <div className="mt-8 grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <div className="p-5 rounded-2xl bg-slate-900/60 border border-slate-800">
-          <span className="text-xs uppercase font-semibold text-slate-400 block">Total Auctions</span>
-          <span className="text-2xl font-black font-mono text-white mt-1 block">{auctions.length}</span>
-        </div>
+          <div className="mt-8 grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <div className="p-5 rounded-2xl bg-slate-900/60 border border-slate-800">
+              <span className="text-xs uppercase font-semibold text-slate-400 block">
+                Total Auctions
+              </span>
+              <span className="text-2xl font-black font-mono text-white mt-1 block">
+                {auctions.length}
+              </span>
+            </div>
 
-        <div className="p-5 rounded-2xl bg-slate-900/60 border border-slate-800">
-          <span className="text-xs uppercase font-semibold text-slate-400 block">Active Auctions</span>
-          <span className="text-2xl font-black font-mono text-emerald-400 mt-1 block">{activeCount}</span>
-        </div>
+            <div className="p-5 rounded-2xl bg-slate-900/60 border border-slate-800">
+              <span className="text-xs uppercase font-semibold text-slate-400 block">
+                Active Auctions
+              </span>
+              <span className="text-2xl font-black font-mono text-emerald-400 mt-1 block">
+                {activeCount}
+              </span>
+            </div>
 
-        <div className="p-5 rounded-2xl bg-slate-900/60 border border-slate-800">
-          <span className="text-xs uppercase font-semibold text-slate-400 block">Settled / Closed</span>
-          <span className="text-2xl font-black font-mono text-amber-400 mt-1 block">{closedCount}</span>
-        </div>
+            <div className="p-5 rounded-2xl bg-slate-900/60 border border-slate-800">
+              <span className="text-xs uppercase font-semibold text-slate-400 block">
+                Settled / Closed
+              </span>
+              <span className="text-2xl font-black font-mono text-amber-400 mt-1 block">
+                {closedCount}
+              </span>
+            </div>
 
-        <div className="p-5 rounded-2xl bg-slate-900/60 border border-slate-800">
-          <span className="text-xs uppercase font-semibold text-slate-400 block">Est. Revenue Collected</span>
-          <span className="text-2xl font-black font-mono text-indigo-400 mt-1 block">
-            ${totalFeesCollected.toFixed(2)}
-          </span>
-        </div>
-      </div>
+            <div className="p-5 rounded-2xl bg-slate-900/60 border border-slate-800">
+              <span className="text-xs uppercase font-semibold text-slate-400 block">
+                Est. Revenue Collected
+              </span>
+              <span className="text-2xl font-black font-mono text-indigo-400 mt-1 block">
+                ${totalFeesCollected.toFixed(2)}
+              </span>
+            </div>
+          </div>
 
-      {/* Status Alert */}
-      {statusMessage && (
-        <div className="mt-6 p-4 rounded-2xl bg-slate-900 border border-slate-700 text-xs text-slate-300 flex items-center justify-between">
-          <span>{statusMessage}</span>
-          <button onClick={() => setStatusMessage(null)} className="text-slate-400 hover:text-white">
-            <X className="w-4 h-4" />
-          </button>
-        </div>
-      )}
+          {/* Status Alert */}
+          {statusMessage && (
+            <div className="mt-6 p-4 rounded-2xl bg-slate-900 border border-slate-700 text-xs text-slate-300 flex items-center justify-between">
+              <span>{statusMessage}</span>
+              <button
+                onClick={() => setStatusMessage(null)}
+                className="text-slate-400 hover:text-white"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          )}
 
-      {/* Auctions Table */}
-      <div className="mt-8 rounded-3xl bg-slate-900/60 border border-slate-800 overflow-hidden shadow-xl">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs text-slate-300">
-            <thead className="bg-slate-950/80 text-[11px] uppercase tracking-wider text-slate-400 border-b border-slate-800">
-              <tr>
-                <th className="py-4 px-6">Item</th>
-                <th className="py-4 px-4">Fee / Value</th>
-                <th className="py-4 px-4">Status & Timer</th>
-                <th className="py-4 px-4">Registrations & Bids</th>
-                <th className="py-4 px-4">Winner Details</th>
-                <th className="py-4 px-6 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-800/80">
-              {auctions.map((a) => {
-                const isResolving = resolvingId === a.id;
-                return (
-                  <tr key={a.id} className="hover:bg-slate-800/30 transition-colors">
-                    {/* Item Image & Title */}
-                    <td className="py-4 px-6">
-                      <div className="flex items-center gap-3">
-                        <img
-                          src={a.imageUrl}
-                          alt={a.title}
-                          className="w-12 h-12 rounded-xl object-cover border border-slate-800 bg-slate-950 shrink-0"
-                          onError={(e) => {
-                            (e.target as HTMLImageElement).src =
-                              'https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=400&q=80';
-                          }}
-                        />
-                        <div>
-                          <div className="flex items-center gap-1.5 flex-wrap">
-                            <Link
-                              to={`/auction/${a.id}`}
-                              className="font-bold text-white hover:text-emerald-400 transition-colors line-clamp-1"
-                            >
-                              {a.title}
-                            </Link>
-                          </div>
-                          <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                            <span className="text-[10px] text-slate-400">ID #{a.id}</span>
-                            {a.sellerUsername ? (
-                              <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-purple-500/20 text-purple-300 border border-purple-500/30">
-                                Seller: @{a.sellerUsername} (60/40)
-                              </span>
-                            ) : (
-                              <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-slate-800 text-slate-400">
-                                Admin Listed
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    </td>
-
-                    {/* Fee & Retail */}
-                    <td className="py-4 px-4 font-mono">
-                      <div>
-                        <span className="text-slate-400 block text-[10px]">Fee: ${a.registrationFee.toFixed(2)}</span>
-                        <span className="font-bold text-slate-200">Retail: ${a.retailValue.toLocaleString()}</span>
-                      </div>
-                    </td>
-
-                    {/* Status & Timer */}
-                    <td className="py-4 px-4">
-                      <div className="space-y-1">
-                        <div>
-                          {a.status === 'Active' && (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300">
-                              Active
-                            </span>
-                          )}
-                          {a.status === 'Closed' && (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-300">
-                              Closed
-                            </span>
-                          )}
-                          {a.status === 'NoWinner' && (
-                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-800 text-slate-400">
-                              No Winner
-                            </span>
-                          )}
-                          {a.status === 'Cancelled' && (
-                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/20 text-rose-400">
-                              Cancelled
-                            </span>
-                          )}
-                        </div>
-                        <LiveCountdown endTime={a.endTime} variant="compact" />
-                      </div>
-                    </td>
-
-                    {/* Registrations & Bids */}
-                    <td className="py-4 px-4">
-                      <div className="text-xs">
-                        <span className="text-slate-200 font-semibold block">
-                          {a.totalRegistrations} users registered
-                        </span>
-                        <span className="text-slate-400 text-[11px] block">
-                          {a.totalBids} blind bids
-                        </span>
-                      </div>
-                    </td>
-
-                    {/* Winner Details */}
-                    <td className="py-4 px-4">
-                      {a.winnerUsername ? (
-                        <div>
-                          <span className="font-bold text-amber-400 block">{a.winnerUsername}</span>
-                          <span className="font-mono text-[11px] text-emerald-400">
-                            ${a.winningBidAmount?.toFixed(2)}
-                          </span>
-                          {a.sellerPayoutAmount ? (
-                            <div className="mt-1 pt-1 border-t border-slate-800 text-[10px] font-mono">
-                              <span className="text-emerald-400 block">Seller 60%: +${a.sellerPayoutAmount.toFixed(2)}</span>
-                              <span className="text-purple-300 block">Platform 40%: +${a.systemProfitAmount?.toFixed(2)}</span>
-                            </div>
-                          ) : null}
-                        </div>
-                      ) : a.status === 'Cancelled' ? (
-                        <div>
-                          <span className="text-rose-400 text-[11px] font-bold block">Cancelled</span>
-                          {a.feeForfeited && (
-                            <span className="text-[9px] text-rose-300 font-mono">1,000 ETB Fee Forfeited</span>
-                          )}
-                        </div>
-                      ) : (
-                        <span className="text-slate-500 text-[11px]">—</span>
-                      )}
-                    </td>
-
-                    {/* Actions */}
-                    <td className="py-4 px-6 text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        {/* Analytics Trigger */}
-                        <button
-                          onClick={() => handleOpenAnalytics(a.id)}
-                          className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors"
-                          title="Inspect Secret Bid Breakdown & Distribution"
-                        >
-                          <BarChart3 className="w-4 h-4 text-indigo-400" />
-                        </button>
-
-                        {/* Resolve Winner Button */}
-                        {a.status === 'Active' && (
-                          <button
-                            onClick={() => handleResolve(a.id)}
-                            disabled={isResolving}
-                            className="px-3 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-500 disabled:opacity-50 text-white font-bold text-xs transition-colors flex items-center gap-1 shadow-md shadow-amber-900/30"
-                            title="Determine Lowest Unique Bid Winner Immediately"
-                          >
-                            <Trophy className="w-3.5 h-3.5" />
-                            <span>{isResolving ? 'Resolving...' : 'Resolve Winner'}</span>
-                          </button>
-                        )}
-
-                        {/* Standard Cancel Button */}
-                        {a.status === 'Active' && (
-                          <button
-                            onClick={() => handleCancel(a.id)}
-                            className="p-2 rounded-xl bg-slate-800 hover:bg-rose-950 hover:text-rose-400 text-slate-400 transition-colors"
-                            title="Cancel Auction"
-                          >
-                            <Ban className="w-4 h-4" />
-                          </button>
-                        )}
-
-                        {/* Fraud / Condition Cancellation Button for Seller Items */}
-                        {a.sellerUserId && (a.status === 'Active' || a.status === 'PendingApproval') && (
-                          <button
-                            onClick={() => {
-                              setFraudModalItem(a);
-                              setFraudReason('Authenticity / Brand-New condition violation. Listing fee forfeited.');
-                            }}
-                            className="p-2 rounded-xl bg-rose-500/10 hover:bg-rose-600 hover:text-white text-rose-400 border border-rose-500/20 transition-colors"
-                            title="Cancel for Non-Similarity / Fraud (Rule 3: Forfeit 1,000 ETB Fee & Refund Bidders)"
-                          >
-                            <AlertTriangle className="w-4 h-4" />
-                          </button>
-                        )}
-                      </div>
-                    </td>
+          {/* Auctions Table */}
+          <div className="mt-8 rounded-3xl bg-slate-900/60 border border-slate-800 overflow-hidden shadow-xl">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs text-slate-300">
+                <thead className="bg-slate-950/80 text-[11px] uppercase tracking-wider text-slate-400 border-b border-slate-800">
+                  <tr>
+                    <th className="py-4 px-6">Item</th>
+                    <th className="py-4 px-4">Fee / Value</th>
+                    <th className="py-4 px-4">Status & Timer</th>
+                    <th className="py-4 px-4">Registrations & Bids</th>
+                    <th className="py-4 px-4">Winner Details</th>
+                    <th className="py-4 px-6 text-right">Actions</th>
                   </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      </div>
+                </thead>
+                <tbody className="divide-y divide-slate-800/80">
+                  {auctions.map((a) => {
+                    const isResolving = resolvingId === a.id;
+                    return (
+                      <tr
+                        key={a.id}
+                        className="hover:bg-slate-800/30 transition-colors"
+                      >
+                        {/* Item Image & Title */}
+                        <td className="py-4 px-6">
+                          <div className="flex items-center gap-3">
+                            <img
+                              src={a.imageUrl}
+                              alt={a.title}
+                              className="w-12 h-12 rounded-xl object-cover border border-slate-800 bg-slate-950 shrink-0"
+                              onError={(e) => {
+                                (e.target as HTMLImageElement).src =
+                                  "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=400&q=80";
+                              }}
+                            />
+                            <div>
+                              <div className="flex items-center gap-1.5 flex-wrap">
+                                <Link
+                                  to={`/auction/${a.id}`}
+                                  className="font-bold text-white hover:text-emerald-400 transition-colors line-clamp-1"
+                                >
+                                  {a.title}
+                                </Link>
+                              </div>
+                              <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                                <span className="text-[10px] text-slate-400">
+                                  ID #{a.id}
+                                </span>
+                                {a.sellerUsername ? (
+                                  <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-purple-500/20 text-purple-300 border border-purple-500/30">
+                                    Seller: @{a.sellerUsername} (60/40)
+                                  </span>
+                                ) : (
+                                  <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-slate-800 text-slate-400">
+                                    Admin Listed
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </td>
+
+                        {/* Fee & Retail */}
+                        <td className="py-4 px-4 font-mono">
+                          <div>
+                            <span className="text-slate-400 block text-[10px]">
+                              Fee: ${a.registrationFee.toFixed(2)}
+                            </span>
+                            <span className="font-bold text-slate-200">
+                              Retail: ${a.retailValue.toLocaleString()}
+                            </span>
+                          </div>
+                        </td>
+
+                        {/* Status & Timer */}
+                        <td className="py-4 px-4">
+                          <div className="space-y-1">
+                            <div>
+                              {a.status === "Active" && (
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300">
+                                  Active
+                                </span>
+                              )}
+                              {a.status === "Closed" && (
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-300">
+                                  Closed
+                                </span>
+                              )}
+                              {a.status === "NoWinner" && (
+                                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-800 text-slate-400">
+                                  No Winner
+                                </span>
+                              )}
+                              {a.status === "Cancelled" && (
+                                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/20 text-rose-400">
+                                  Cancelled
+                                </span>
+                              )}
+                            </div>
+                            <LiveCountdown
+                              endTime={a.endTime}
+                              variant="compact"
+                            />
+                          </div>
+                        </td>
+
+                        {/* Registrations & Bids */}
+                        <td className="py-4 px-4">
+                          <div className="text-xs">
+                            <span className="text-slate-200 font-semibold block">
+                              {a.totalRegistrations} users registered
+                            </span>
+                            <span className="text-slate-400 text-[11px] block">
+                              {a.totalBids} blind bids
+                            </span>
+                          </div>
+                        </td>
+
+                        {/* Winner Details */}
+                        <td className="py-4 px-4">
+                          {a.winnerUsername ? (
+                            <div>
+                              <span className="font-bold text-amber-400 block">
+                                {a.winnerUsername}
+                              </span>
+                              <span className="font-mono text-[11px] text-emerald-400">
+                                ${a.winningBidAmount?.toFixed(2)}
+                              </span>
+                              {a.sellerPayoutAmount ? (
+                                <div className="mt-1 pt-1 border-t border-slate-800 text-[10px] font-mono">
+                                  <span className="text-emerald-400 block">
+                                    Seller 60%: +$
+                                    {a.sellerPayoutAmount.toFixed(2)}
+                                  </span>
+                                  <span className="text-purple-300 block">
+                                    Platform 40%: +$
+                                    {a.systemProfitAmount?.toFixed(2)}
+                                  </span>
+                                </div>
+                              ) : null}
+                            </div>
+                          ) : a.status === "Cancelled" ? (
+                            <div>
+                              <span className="text-rose-400 text-[11px] font-bold block">
+                                Cancelled
+                              </span>
+                              {a.feeForfeited && (
+                                <span className="text-[9px] text-rose-300 font-mono">
+                                  1,000 ETB Fee Forfeited
+                                </span>
+                              )}
+                            </div>
+                          ) : (
+                            <span className="text-slate-500 text-[11px]">
+                              —
+                            </span>
+                          )}
+                        </td>
+
+                        {/* Actions */}
+                        <td className="py-4 px-6 text-right">
+                          <div className="flex items-center justify-end gap-2">
+                            {/* Analytics Trigger */}
+                            <button
+                              onClick={() => handleOpenAnalytics(a.id)}
+                              className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors"
+                              title="Inspect Secret Bid Breakdown & Distribution"
+                            >
+                              <BarChart3 className="w-4 h-4 text-indigo-400" />
+                            </button>
+
+                            {/* Resolve Winner Button */}
+                            {a.status === "Active" && (
+                              <button
+                                onClick={() => handleResolve(a.id)}
+                                disabled={isResolving}
+                                className="px-3 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-500 disabled:opacity-50 text-white font-bold text-xs transition-colors flex items-center gap-1 shadow-md shadow-amber-900/30"
+                                title="Determine Lowest Unique Bid Winner Immediately"
+                              >
+                                <Trophy className="w-3.5 h-3.5" />
+                                <span>
+                                  {isResolving
+                                    ? "Resolving..."
+                                    : "Resolve Winner"}
+                                </span>
+                              </button>
+                            )}
+
+                            {/* Standard Cancel Button */}
+                            {a.status === "Active" && (
+                              <button
+                                onClick={() => handleCancel(a.id)}
+                                className="p-2 rounded-xl bg-slate-800 hover:bg-rose-950 hover:text-rose-400 text-slate-400 transition-colors"
+                                title="Cancel Auction"
+                              >
+                                <Ban className="w-4 h-4" />
+                              </button>
+                            )}
+
+                            {/* Fraud / Condition Cancellation Button for Seller Items */}
+                            {a.sellerUserId &&
+                              (a.status === "Active" ||
+                                a.status === "PendingApproval") && (
+                                <button
+                                  onClick={() => {
+                                    setFraudModalItem(a);
+                                    setFraudReason(
+                                      "Authenticity / Brand-New condition violation. Listing fee forfeited.",
+                                    );
+                                  }}
+                                  className="p-2 rounded-xl bg-rose-500/10 hover:bg-rose-600 hover:text-white text-rose-400 border border-rose-500/20 transition-colors"
+                                  title="Cancel for Non-Similarity / Fraud (Rule 3: Forfeit 1,000 ETB Fee & Refund Bidders)"
+                                >
+                                  <AlertTriangle className="w-4 h-4" />
+                                </button>
+                              )}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
         </>
-      ) : activeSection === 'topups' ? (
+      ) : activeSection === "topups" ? (
         /* Telebirr Top-Up Approvals Section */
         <div className="mt-8 space-y-6 animate-fade-in">
           {/* Top-up KPI Stats */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             <div className="p-5 rounded-2xl bg-slate-900/60 border border-slate-800">
-              <span className="text-xs uppercase font-semibold text-slate-400 block">Total Requests</span>
-              <span className="text-2xl font-black font-mono text-white mt-1 block">{topUpRequests.length}</span>
+              <span className="text-xs uppercase font-semibold text-slate-400 block">
+                Total Requests
+              </span>
+              <span className="text-2xl font-black font-mono text-white mt-1 block">
+                {topUpRequests.length}
+              </span>
             </div>
 
             <div className="p-5 rounded-2xl bg-slate-900/60 border border-amber-500/40">
@@ -554,18 +644,30 @@ export const AdminDashboard: React.FC = () => {
                 <Clock className="w-3.5 h-3.5 animate-spin" />
                 <span>Pending Verification</span>
               </span>
-              <span className="text-2xl font-black font-mono text-amber-400 mt-1 block">{pendingTopUps.length}</span>
+              <span className="text-2xl font-black font-mono text-amber-400 mt-1 block">
+                {pendingTopUps.length}
+              </span>
             </div>
 
             <div className="p-5 rounded-2xl bg-slate-900/60 border border-emerald-500/40">
-              <span className="text-xs uppercase font-semibold text-emerald-400 block">Approved &amp; Credited</span>
-              <span className="text-2xl font-black font-mono text-emerald-400 mt-1 block">{approvedTopUps.length}</span>
+              <span className="text-xs uppercase font-semibold text-emerald-400 block">
+                Approved &amp; Credited
+              </span>
+              <span className="text-2xl font-black font-mono text-emerald-400 mt-1 block">
+                {approvedTopUps.length}
+              </span>
             </div>
 
             <div className="p-5 rounded-2xl bg-slate-900/60 border border-slate-800">
-              <span className="text-xs uppercase font-semibold text-slate-400 block">Total Telebirr Volume</span>
+              <span className="text-xs uppercase font-semibold text-slate-400 block">
+                Total Telebirr Volume
+              </span>
               <span className="text-2xl font-black font-mono text-[#008FD5] mt-1 block">
-                {totalTopUpETB.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ETB
+                {totalTopUpETB.toLocaleString(undefined, {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}{" "}
+                ETB
               </span>
             </div>
           </div>
@@ -573,26 +675,30 @@ export const AdminDashboard: React.FC = () => {
           {/* Filter Bar & Refresh */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2">
             <div className="flex items-center gap-2">
-              {(['All', 'Pending', 'Approved', 'Rejected'] as const).map((filter) => (
-                <button
-                  key={filter}
-                  onClick={() => setTopUpFilter(filter)}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
-                    topUpFilter === filter
-                      ? 'bg-[#008FD5] text-white shadow-sm'
-                      : 'bg-slate-800 hover:bg-slate-700 text-slate-300'
-                  }`}
-                >
-                  {filter}
-                </button>
-              ))}
+              {(["All", "Pending", "Approved", "Rejected"] as const).map(
+                (filter) => (
+                  <button
+                    key={filter}
+                    onClick={() => setTopUpFilter(filter)}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                      topUpFilter === filter
+                        ? "bg-[#008FD5] text-white shadow-sm"
+                        : "bg-slate-800 hover:bg-slate-700 text-slate-300"
+                    }`}
+                  >
+                    {filter}
+                  </button>
+                ),
+              )}
             </div>
 
             <button
               onClick={fetchTopUps}
               className="inline-flex items-center gap-1.5 text-xs text-[#008FD5] hover:underline"
             >
-              <RefreshCw className={`w-3.5 h-3.5 ${isLoadingTopUps ? 'animate-spin' : ''}`} />
+              <RefreshCw
+                className={`w-3.5 h-3.5 ${isLoadingTopUps ? "animate-spin" : ""}`}
+              />
               <span>Refresh Top-Up Requests</span>
             </button>
           </div>
@@ -609,14 +715,21 @@ export const AdminDashboard: React.FC = () => {
                     <th className="py-4 px-4">Txn Number</th>
                     <th className="py-4 px-4">Target Agent</th>
                     <th className="py-4 px-4">Status &amp; Time</th>
-                    <th className="py-4 px-6 text-right">Verification Action</th>
+                    <th className="py-4 px-6 text-right">
+                      Verification Action
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-800/80">
                   {filteredTopUps.length === 0 ? (
                     <tr>
-                      <td colSpan={7} className="py-12 text-center text-slate-500 italic">
-                        No {topUpFilter !== 'All' ? topUpFilter.toLowerCase() : ''} Telebirr top-up requests found.
+                      <td
+                        colSpan={7}
+                        className="py-12 text-center text-slate-500 italic"
+                      >
+                        No{" "}
+                        {topUpFilter !== "All" ? topUpFilter.toLowerCase() : ""}{" "}
+                        Telebirr top-up requests found.
                       </td>
                     </tr>
                   ) : (
@@ -624,7 +737,10 @@ export const AdminDashboard: React.FC = () => {
                       const isApproving = approvingId === req.id;
                       const isRejecting = rejectingId === req.id;
                       return (
-                        <tr key={req.id} className="hover:bg-slate-800/30 transition-colors">
+                        <tr
+                          key={req.id}
+                          className="hover:bg-slate-800/30 transition-colors"
+                        >
                           {/* User */}
                           <td className="py-4 px-6">
                             <div>
@@ -659,7 +775,9 @@ export const AdminDashboard: React.FC = () => {
                                 {req.transactionNumber}
                               </span>
                               <button
-                                onClick={() => handleCopyTxn(req.transactionNumber)}
+                                onClick={() =>
+                                  handleCopyTxn(req.transactionNumber)
+                                }
                                 className="p-1 text-slate-400 hover:text-white"
                                 title="Copy Transaction Code"
                               >
@@ -689,14 +807,16 @@ export const AdminDashboard: React.FC = () => {
                             <div>
                               <span
                                 className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase border inline-block ${
-                                  req.status === 'Approved'
-                                    ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30'
-                                    : req.status === 'Rejected'
-                                    ? 'bg-rose-500/20 text-rose-300 border-rose-500/30'
-                                    : 'bg-amber-500/20 text-amber-300 border-amber-500/30 animate-pulse'
+                                  req.status === "Approved"
+                                    ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/30"
+                                    : req.status === "Rejected"
+                                      ? "bg-rose-500/20 text-rose-300 border-rose-500/30"
+                                      : "bg-amber-500/20 text-amber-300 border-amber-500/30 animate-pulse"
                                 }`}
                               >
-                                {req.status === 'Pending' ? 'Pending Verification' : req.status}
+                                {req.status === "Pending"
+                                  ? "Pending Verification"
+                                  : req.status}
                               </span>
                               <span className="text-[10px] text-slate-400 block font-mono mt-0.5">
                                 {new Date(req.createdAt).toLocaleString()}
@@ -706,7 +826,7 @@ export const AdminDashboard: React.FC = () => {
 
                           {/* Actions */}
                           <td className="py-4 px-6 text-right">
-                            {req.status === 'Pending' ? (
+                            {req.status === "Pending" ? (
                               <div className="flex items-center justify-end gap-2">
                                 <button
                                   onClick={() => handleApproveTopUp(req.id)}
@@ -715,7 +835,11 @@ export const AdminDashboard: React.FC = () => {
                                   title="Approve Telebirr transfer and credit user wallet"
                                 >
                                   <CheckCircle2 className="w-3.5 h-3.5" />
-                                  <span>{isApproving ? 'Crediting...' : 'Approve & Credit'}</span>
+                                  <span>
+                                    {isApproving
+                                      ? "Crediting..."
+                                      : "Approve & Credit"}
+                                  </span>
                                 </button>
 
                                 <button
@@ -725,14 +849,18 @@ export const AdminDashboard: React.FC = () => {
                                   title="Reject request"
                                 >
                                   <XCircle className="w-3.5 h-3.5" />
-                                  <span>{isRejecting ? 'Rejecting...' : 'Reject'}</span>
+                                  <span>
+                                    {isRejecting ? "Rejecting..." : "Reject"}
+                                  </span>
                                 </button>
                               </div>
-                            ) : req.status === 'Approved' ? (
+                            ) : req.status === "Approved" ? (
                               <div className="text-right">
                                 <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-400">
                                   <CheckCircle2 className="w-3.5 h-3.5" />
-                                  <span>Credited (${req.amount.toFixed(2)})</span>
+                                  <span>
+                                    Credited (${req.amount.toFixed(2)})
+                                  </span>
                                 </span>
                               </div>
                             ) : (
@@ -764,25 +892,39 @@ export const AdminDashboard: React.FC = () => {
           {/* KPI Cards */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             <div className="p-5 rounded-2xl bg-slate-900/60 border border-slate-800">
-              <span className="text-xs uppercase font-semibold text-slate-400 block">Pending Reviews</span>
-              <span className="text-2xl font-black font-mono text-purple-400 mt-1 block">{pendingItems.length}</span>
+              <span className="text-xs uppercase font-semibold text-slate-400 block">
+                Pending Reviews
+              </span>
+              <span className="text-2xl font-black font-mono text-purple-400 mt-1 block">
+                {pendingItems.length}
+              </span>
             </div>
 
             <div className="p-5 rounded-2xl bg-slate-900/60 border border-emerald-500/30">
-              <span className="text-xs uppercase font-semibold text-emerald-400 block">Listing Fees Paid</span>
+              <span className="text-xs uppercase font-semibold text-emerald-400 block">
+                Listing Fees Paid
+              </span>
               <span className="text-2xl font-black font-mono text-emerald-400 mt-1 block">
                 {(pendingItems.length * 1000).toLocaleString()} ETB
               </span>
             </div>
 
             <div className="p-5 rounded-2xl bg-slate-900/60 border border-slate-800">
-              <span className="text-xs uppercase font-semibold text-slate-400 block">Condition Policy</span>
-              <span className="text-sm font-bold text-white mt-1 block">100% Brand New Only</span>
+              <span className="text-xs uppercase font-semibold text-slate-400 block">
+                Condition Policy
+              </span>
+              <span className="text-sm font-bold text-white mt-1 block">
+                100% Brand New Only
+              </span>
             </div>
 
             <div className="p-5 rounded-2xl bg-slate-900/60 border border-slate-800">
-              <span className="text-xs uppercase font-semibold text-slate-400 block">Profit Split</span>
-              <span className="text-sm font-bold text-emerald-400 mt-1 block">60% Seller / 40% Platform</span>
+              <span className="text-xs uppercase font-semibold text-slate-400 block">
+                Profit Split
+              </span>
+              <span className="text-sm font-bold text-emerald-400 mt-1 block">
+                60% Seller / 40% Platform
+              </span>
             </div>
           </div>
 
@@ -795,9 +937,12 @@ export const AdminDashboard: React.FC = () => {
           ) : pendingItems.length === 0 ? (
             <div className="py-16 text-center rounded-3xl bg-slate-900/60 border border-slate-800 p-8">
               <CheckCircle2 className="w-12 h-12 text-emerald-400 mx-auto mb-3" />
-              <h3 className="text-base font-bold text-white">No items pending review</h3>
+              <h3 className="text-base font-bold text-white">
+                No items pending review
+              </h3>
               <p className="text-xs text-slate-400 mt-1 max-w-sm mx-auto">
-                All community seller submissions have been reviewed and approved or rejected.
+                All community seller submissions have been reviewed and approved
+                or rejected.
               </p>
             </div>
           ) : (
@@ -818,13 +963,14 @@ export const AdminDashboard: React.FC = () => {
                           className="w-24 h-24 rounded-2xl object-cover border border-slate-800 bg-slate-950 shrink-0"
                           onError={(e) => {
                             (e.target as HTMLImageElement).src =
-                              'https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=400&q=80';
+                              "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=400&q=80";
                           }}
                         />
                         <div className="space-y-1">
                           <div className="flex items-center gap-2 flex-wrap">
                             <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-purple-500/20 text-purple-300 border border-purple-500/30">
-                              Seller: @{item.sellerUsername || 'User'} (ID #{item.sellerUserId})
+                              Seller: @{item.sellerUsername || "User"} (ID #
+                              {item.sellerUserId})
                             </span>
                             <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
                               1,000 ETB Fee Paid
@@ -834,17 +980,32 @@ export const AdminDashboard: React.FC = () => {
                             </span>
                           </div>
 
-                          <h3 className="text-base font-bold text-white">{item.title}</h3>
+                          <h3 className="text-base font-bold text-white">
+                            {item.title}
+                          </h3>
                           <p className="text-xs text-slate-300 line-clamp-2 max-w-2xl leading-relaxed">
                             {item.description}
                           </p>
 
                           <div className="flex items-center gap-4 text-xs font-mono text-slate-400 pt-1">
-                            <span>Retail: <strong className="text-white">${item.retailValue.toLocaleString()} ETB</strong></span>
+                            <span>
+                              Retail:{" "}
+                              <strong className="text-white">
+                                ${item.retailValue.toLocaleString()} ETB
+                              </strong>
+                            </span>
                             <span>&bull;</span>
-                            <span>Proposed Entry: <strong className="text-emerald-400">{item.registrationFee} ETB</strong></span>
+                            <span>
+                              Proposed Entry:{" "}
+                              <strong className="text-emerald-400">
+                                {item.registrationFee} ETB
+                              </strong>
+                            </span>
                             <span>&bull;</span>
-                            <span>Submitted: {new Date(item.createdAt).toLocaleString()}</span>
+                            <span>
+                              Submitted:{" "}
+                              {new Date(item.createdAt).toLocaleString()}
+                            </span>
                           </div>
                         </div>
                       </div>
@@ -858,13 +1019,17 @@ export const AdminDashboard: React.FC = () => {
                           title="Approve item and publish directly to live catalog"
                         >
                           <CheckCircle2 className="w-4 h-4" />
-                          <span>{isApproving ? 'Approving...' : 'Approve & Go Live'}</span>
+                          <span>
+                            {isApproving ? "Approving..." : "Approve & Go Live"}
+                          </span>
                         </button>
 
                         <button
                           onClick={() => {
                             setRejectModalItem(item);
-                            setRejectReason('Item photos or specifications do not satisfy brand-new listing guidelines.');
+                            setRejectReason(
+                              "Item photos or specifications do not satisfy brand-new listing guidelines.",
+                            );
                             setRejectRefundFee(false);
                           }}
                           disabled={isApproving}
@@ -878,7 +1043,9 @@ export const AdminDashboard: React.FC = () => {
                         <button
                           onClick={() => {
                             setFraudModalItem(item);
-                            setFraudReason('Item identified as counterfeit or not in brand new condition. 1,000 Birr listing fee forfeited.');
+                            setFraudReason(
+                              "Item identified as counterfeit or not in brand new condition. 1,000 Birr listing fee forfeited.",
+                            );
                           }}
                           disabled={isApproving}
                           className="w-full px-4 py-2 rounded-xl bg-red-600/10 hover:bg-red-600 text-red-400 hover:text-white border border-red-500/30 font-bold text-xs flex items-center justify-center gap-1.5 transition-all disabled:opacity-50"
@@ -896,7 +1063,10 @@ export const AdminDashboard: React.FC = () => {
                         Seller Authenticity & Condition Declaration:
                       </span>
                       <p className="italic font-sans text-slate-200">
-                        "{item.authenticityDeclaration || 'No declaration provided.'}"
+                        "
+                        {item.authenticityDeclaration ||
+                          "No declaration provided."}
+                        "
                       </p>
                     </div>
                   </div>
@@ -922,8 +1092,12 @@ export const AdminDashboard: React.FC = () => {
               <div className="w-14 h-14 rounded-2xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400 mx-auto mb-3">
                 <Trophy className="w-8 h-8" />
               </div>
-              <h3 className="text-xl font-black text-white">Lowest Unique Bid Resolution</h3>
-              <p className="text-xs text-slate-400 mt-1">{resolutionResult.title}</p>
+              <h3 className="text-xl font-black text-white">
+                Lowest Unique Bid Resolution
+              </h3>
+              <p className="text-xs text-slate-400 mt-1">
+                {resolutionResult.title}
+              </p>
             </div>
 
             {resolutionResult.lowestUniqueBidFound ? (
@@ -936,7 +1110,10 @@ export const AdminDashboard: React.FC = () => {
                     {resolutionResult.winnerUsername}
                   </h4>
                   <div className="mt-2 text-sm font-mono text-emerald-300">
-                    Winning Bid: <span className="font-bold text-white text-lg">${resolutionResult.winningBidAmount?.toFixed(2)}</span>
+                    Winning Bid:{" "}
+                    <span className="font-bold text-white text-lg">
+                      ${resolutionResult.winningBidAmount?.toFixed(2)}
+                    </span>
                   </div>
                   <p className="text-xs text-emerald-400 mt-1">
                     Saved {resolutionResult.savingsPercent}% off retail price!
@@ -945,24 +1122,40 @@ export const AdminDashboard: React.FC = () => {
 
                 <div className="grid grid-cols-3 gap-2 text-center text-xs font-mono">
                   <div className="p-3 rounded-xl bg-slate-950 border border-slate-800">
-                    <span className="text-slate-400 text-[10px] block">Total Bids</span>
-                    <span className="font-bold text-white">{resolutionResult.totalBids}</span>
+                    <span className="text-slate-400 text-[10px] block">
+                      Total Bids
+                    </span>
+                    <span className="font-bold text-white">
+                      {resolutionResult.totalBids}
+                    </span>
                   </div>
                   <div className="p-3 rounded-xl bg-slate-950 border border-slate-800">
-                    <span className="text-slate-400 text-[10px] block">Unique Bids</span>
-                    <span className="font-bold text-emerald-400">{resolutionResult.uniqueBidsCount}</span>
+                    <span className="text-slate-400 text-[10px] block">
+                      Unique Bids
+                    </span>
+                    <span className="font-bold text-emerald-400">
+                      {resolutionResult.uniqueBidsCount}
+                    </span>
                   </div>
                   <div className="p-3 rounded-xl bg-slate-950 border border-slate-800">
-                    <span className="text-slate-400 text-[10px] block">Duplicates</span>
-                    <span className="font-bold text-rose-400">{resolutionResult.duplicateBidsCount}</span>
+                    <span className="text-slate-400 text-[10px] block">
+                      Duplicates
+                    </span>
+                    <span className="font-bold text-rose-400">
+                      {resolutionResult.duplicateBidsCount}
+                    </span>
                   </div>
                 </div>
               </div>
             ) : (
               <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 text-center">
                 <AlertTriangle className="w-8 h-8 text-amber-400 mx-auto mb-2" />
-                <h4 className="text-sm font-bold text-white">No Lowest Unique Bid Found</h4>
-                <p className="text-xs text-slate-400 mt-1">{resolutionResult.message}</p>
+                <h4 className="text-sm font-bold text-white">
+                  No Lowest Unique Bid Found
+                </h4>
+                <p className="text-xs text-slate-400 mt-1">
+                  {resolutionResult.message}
+                </p>
               </div>
             )}
 
@@ -994,32 +1187,51 @@ export const AdminDashboard: React.FC = () => {
                 <BarChart3 className="w-6 h-6" />
               </div>
               <div>
-                <h3 className="text-xl font-bold text-white">Secret Bid Distribution Analytics</h3>
-                <p className="text-xs text-slate-400">{selectedAnalytics.title} (Auction #{selectedAnalytics.auctionId})</p>
+                <h3 className="text-xl font-bold text-white">
+                  Secret Bid Distribution Analytics
+                </h3>
+                <p className="text-xs text-slate-400">
+                  {selectedAnalytics.title} (Auction #
+                  {selectedAnalytics.auctionId})
+                </p>
               </div>
             </div>
 
             {/* Quick Metrics */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
               <div className="p-3.5 rounded-xl bg-slate-950 border border-slate-800">
-                <span className="text-[10px] text-slate-400 uppercase font-semibold block">Total Bids Placed</span>
-                <span className="text-lg font-mono font-bold text-white">{selectedAnalytics.totalBids}</span>
+                <span className="text-[10px] text-slate-400 uppercase font-semibold block">
+                  Total Bids Placed
+                </span>
+                <span className="text-lg font-mono font-bold text-white">
+                  {selectedAnalytics.totalBids}
+                </span>
               </div>
 
               <div className="p-3.5 rounded-xl bg-slate-950 border border-slate-800">
-                <span className="text-[10px] text-emerald-400 uppercase font-semibold block">Unique Bids</span>
-                <span className="text-lg font-mono font-bold text-emerald-400">{selectedAnalytics.uniqueBidsCount}</span>
+                <span className="text-[10px] text-emerald-400 uppercase font-semibold block">
+                  Unique Bids
+                </span>
+                <span className="text-lg font-mono font-bold text-emerald-400">
+                  {selectedAnalytics.uniqueBidsCount}
+                </span>
               </div>
 
               <div className="p-3.5 rounded-xl bg-slate-950 border border-slate-800">
-                <span className="text-[10px] text-rose-400 uppercase font-semibold block">Duplicated Bids</span>
-                <span className="text-lg font-mono font-bold text-rose-400">{selectedAnalytics.duplicateBidsCount}</span>
+                <span className="text-[10px] text-rose-400 uppercase font-semibold block">
+                  Duplicated Bids
+                </span>
+                <span className="text-lg font-mono font-bold text-rose-400">
+                  {selectedAnalytics.duplicateBidsCount}
+                </span>
               </div>
 
               <div className="p-3.5 rounded-xl bg-slate-950 border border-slate-800">
-                <span className="text-[10px] text-amber-400 uppercase font-semibold block">Current Winner</span>
+                <span className="text-[10px] text-amber-400 uppercase font-semibold block">
+                  Current Winner
+                </span>
                 <span className="text-sm font-bold text-amber-400 truncate block">
-                  {selectedAnalytics.winnerUsername || 'Pending Settlement'}
+                  {selectedAnalytics.winnerUsername || "Pending Settlement"}
                 </span>
               </div>
             </div>
@@ -1037,10 +1249,10 @@ export const AdminDashboard: React.FC = () => {
                       key={group.amount}
                       className={`p-3 rounded-xl border flex items-center justify-between text-xs font-mono transition-all ${
                         group.isWinning
-                          ? 'bg-amber-500/20 border-amber-500/50 text-amber-200 shadow-md shadow-amber-950/50'
+                          ? "bg-amber-500/20 border-amber-500/50 text-amber-200 shadow-md shadow-amber-950/50"
                           : group.isUnique
-                          ? 'bg-emerald-950/30 border-emerald-500/30 text-emerald-300'
-                          : 'bg-rose-950/20 border-rose-800/40 text-rose-300'
+                            ? "bg-emerald-950/30 border-emerald-500/30 text-emerald-300"
+                            : "bg-rose-950/20 border-rose-800/40 text-rose-300"
                       }`}
                     >
                       <div className="flex items-center gap-3">
@@ -1048,14 +1260,16 @@ export const AdminDashboard: React.FC = () => {
                           ${group.amount.toFixed(2)}
                         </span>
                         <span className="text-slate-400 text-[11px]">
-                          ({group.count} {group.count === 1 ? 'bid' : 'bids'} placed)
+                          ({group.count} {group.count === 1 ? "bid" : "bids"}{" "}
+                          placed)
                         </span>
                       </div>
 
                       <div className="flex items-center gap-2">
                         {group.isWinning ? (
                           <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-500/30 text-amber-300 border border-amber-500/40">
-                            <Trophy className="w-3.5 h-3.5" /> Lowest Unique Winner!
+                            <Trophy className="w-3.5 h-3.5" /> Lowest Unique
+                            Winner!
                           </span>
                         ) : group.isUnique ? (
                           <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-500/20 text-emerald-300">
@@ -1068,7 +1282,7 @@ export const AdminDashboard: React.FC = () => {
                         )}
 
                         <span className="text-[10px] text-slate-400 font-sans hidden sm:inline">
-                          By: {group.bidderUsernames.join(', ')}
+                          By: {group.bidderUsernames.join(", ")}
                         </span>
                       </div>
                     </div>
@@ -1109,9 +1323,12 @@ export const AdminDashboard: React.FC = () => {
                 <XCircle className="w-6 h-6" />
               </div>
               <div>
-                <h3 className="text-lg font-black text-white">Reject Item Submission</h3>
+                <h3 className="text-lg font-black text-white">
+                  Reject Item Submission
+                </h3>
                 <p className="text-xs text-slate-400">
-                  {rejectModalItem.title} (Seller: @{rejectModalItem.sellerUsername})
+                  {rejectModalItem.title} (Seller: @
+                  {rejectModalItem.sellerUsername})
                 </p>
               </div>
             </div>
@@ -1143,7 +1360,8 @@ export const AdminDashboard: React.FC = () => {
                       Refund 1,000 ETB Listing Fee to Seller Wallet
                     </span>
                     <span className="text-[11px] text-slate-400">
-                      Uncheck to forfeit the fee (e.g. for policy violations, fake items, or repetitive bad submissions).
+                      Uncheck to forfeit the fee (e.g. for policy violations,
+                      fake items, or repetitive bad submissions).
                     </span>
                   </div>
                 </label>
@@ -1163,7 +1381,7 @@ export const AdminDashboard: React.FC = () => {
                   disabled={isRejectingItem || !rejectReason.trim()}
                   className="px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold shadow-lg shadow-rose-950/50 disabled:opacity-50"
                 >
-                  {isRejectingItem ? 'Rejecting...' : 'Confirm Rejection'}
+                  {isRejectingItem ? "Rejecting..." : "Confirm Rejection"}
                 </button>
               </div>
             </div>
@@ -1187,9 +1405,12 @@ export const AdminDashboard: React.FC = () => {
                 <AlertTriangle className="w-6 h-6" />
               </div>
               <div>
-                <h3 className="text-lg font-black text-white">Cancel Auction: Fraud / Condition Violation</h3>
+                <h3 className="text-lg font-black text-white">
+                  Cancel Auction: Fraud / Condition Violation
+                </h3>
                 <p className="text-xs text-slate-400">
-                  {fraudModalItem.title} (Seller: @{fraudModalItem.sellerUsername})
+                  {fraudModalItem.title} (Seller: @
+                  {fraudModalItem.sellerUsername})
                 </p>
               </div>
             </div>
@@ -1199,8 +1420,13 @@ export const AdminDashboard: React.FC = () => {
                 Rule 3 Immediate Enforcement:
               </span>
               <p>
-                The seller's <strong>1,000 ETB listing fee will be forfeited permanently</strong>. 
-                Any registered bidders will automatically receive a <strong>100% refund of their entry fees</strong> back to their wallet.
+                The seller's{" "}
+                <strong>
+                  1,000 ETB listing fee will be forfeited permanently
+                </strong>
+                . Any registered bidders will automatically receive a{" "}
+                <strong>100% refund of their entry fees</strong> back to their
+                wallet.
               </p>
             </div>
 
@@ -1232,7 +1458,9 @@ export const AdminDashboard: React.FC = () => {
                   disabled={isCancellingFraud || !fraudReason.trim()}
                   className="px-5 py-2.5 rounded-xl bg-red-600 hover:bg-red-500 text-white text-xs font-black shadow-lg shadow-red-950/60 disabled:opacity-50"
                 >
-                  {isCancellingFraud ? 'Processing Cancellation...' : 'Enforce Fraud Cancellation & Forfeit Fee'}
+                  {isCancellingFraud
+                    ? "Processing Cancellation..."
+                    : "Enforce Fraud Cancellation & Forfeit Fee"}
                 </button>
               </div>
             </div>

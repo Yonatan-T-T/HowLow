@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo } from "react";
 
 export interface CountdownResult {
   days: number;
@@ -10,7 +10,9 @@ export interface CountdownResult {
   formatted: string;
 }
 
-export const useCountdown = (endTimeIso: string | Date | undefined): CountdownResult => {
+export const useCountdown = (
+  endTimeIso: string | Date | undefined,
+): CountdownResult => {
   const targetTime = useMemo(() => {
     if (!endTimeIso) return 0;
     return new Date(endTimeIso).getTime();
@@ -47,11 +49,11 @@ export const useCountdown = (endTimeIso: string | Date | undefined): CountdownRe
   const seconds = Math.floor(totalSeconds % 60);
 
   const formatted = useMemo(() => {
-    if (isEnded) return 'Ended';
+    if (isEnded) return "Ended";
     if (days > 0) {
-      return `${days}d ${hours.toString().padStart(2, '0')}h ${minutes.toString().padStart(2, '0')}m ${seconds.toString().padStart(2, '0')}s`;
+      return `${days}d ${hours.toString().padStart(2, "0")}h ${minutes.toString().padStart(2, "0")}m ${seconds.toString().padStart(2, "0")}s`;
     }
-    return `${hours.toString().padStart(2, '0')}h ${minutes.toString().padStart(2, '0')}m ${seconds.toString().padStart(2, '0')}s`;
+    return `${hours.toString().padStart(2, "0")}h ${minutes.toString().padStart(2, "0")}m ${seconds.toString().padStart(2, "0")}s`;
   }, [days, hours, minutes, seconds, isEnded]);
 
   return {

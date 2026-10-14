@@ -1,14 +1,14 @@
-import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { 
-  ArrowLeft, 
-  Plus, 
-  Image as ImageIcon, 
-  Sparkles, 
-  AlertCircle
-} from 'lucide-react';
-import type { CreateAuctionPayload } from '../types/auction';
-import { api } from '../services/api';
+import React, { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import {
+  ArrowLeft,
+  Plus,
+  Image as ImageIcon,
+  Sparkles,
+  AlertCircle,
+} from "lucide-react";
+import type { CreateAuctionPayload } from "../types/auction";
+import { api } from "../services/api";
 
 interface PresetTemplate {
   title: string;
@@ -21,24 +21,30 @@ interface PresetTemplate {
 const DEMO_PRESETS: PresetTemplate[] = [
   {
     title: 'Apple iPad Pro 13" M4 OLED - Space Black',
-    description: 'Ultra Retina XDR display featuring breakthrough tandem OLED technology. Powered by the groundbreaking Apple M4 chip with 10-core CPU and hardware-accelerated ray tracing.',
-    imageUrl: 'https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?auto=format&fit=crop&w=1000&q=80',
-    retailValue: 1299.00,
-    registrationFee: 6.00,
+    description:
+      "Ultra Retina XDR display featuring breakthrough tandem OLED technology. Powered by the groundbreaking Apple M4 chip with 10-core CPU and hardware-accelerated ray tracing.",
+    imageUrl:
+      "https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?auto=format&fit=crop&w=1000&q=80",
+    retailValue: 1299.0,
+    registrationFee: 6.0,
   },
   {
-    title: 'Fujifilm X100VI Digital Camera - Silver',
-    description: 'The iconic street photography camera with 40.2MP X-Trans CMOS 5 HR sensor, 5-axis in-body image stabilization, and legendary Film Simulation modes.',
-    imageUrl: 'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=1000&q=80',
-    retailValue: 1599.00,
-    registrationFee: 7.50,
+    title: "Fujifilm X100VI Digital Camera - Silver",
+    description:
+      "The iconic street photography camera with 40.2MP X-Trans CMOS 5 HR sensor, 5-axis in-body image stabilization, and legendary Film Simulation modes.",
+    imageUrl:
+      "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=1000&q=80",
+    retailValue: 1599.0,
+    registrationFee: 7.5,
   },
   {
-    title: 'Nintendo Switch OLED - Mario Red Edition',
-    description: 'Vibrant 7-inch OLED screen, wide adjustable stand, enhanced audio, and 64GB internal storage in a special Mario-themed red chassis.',
-    imageUrl: 'https://images.unsplash.com/photo-1578301978693-85fa9c0320b9?auto=format&fit=crop&w=1000&q=80',
+    title: "Nintendo Switch OLED - Mario Red Edition",
+    description:
+      "Vibrant 7-inch OLED screen, wide adjustable stand, enhanced audio, and 64GB internal storage in a special Mario-themed red chassis.",
+    imageUrl:
+      "https://images.unsplash.com/photo-1578301978693-85fa9c0320b9?auto=format&fit=crop&w=1000&q=80",
     retailValue: 349.99,
-    registrationFee: 2.00,
+    registrationFee: 2.0,
   },
 ];
 
@@ -50,27 +56,31 @@ export const AdminCreateAuction: React.FC = () => {
     const d = new Date(Date.now() + 2 * 3600 * 1000);
     // Format to YYYY-MM-DDTHH:mm local
     const tzOffset = d.getTimezoneOffset() * 60000;
-    const localIso = new Date(d.getTime() - tzOffset).toISOString().slice(0, 16);
+    const localIso = new Date(d.getTime() - tzOffset)
+      .toISOString()
+      .slice(0, 16);
     return localIso;
   };
 
   const [formData, setFormData] = useState<CreateAuctionPayload>({
-    title: '',
-    description: '',
-    imageUrl: '',
-    registrationFee: 5.00,
-    retailValue: 999.00,
+    title: "",
+    description: "",
+    imageUrl: "",
+    registrationFee: 5.0,
+    retailValue: 999.0,
     endTime: getDefaultEndTime(),
   });
 
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+  ) => {
     const { name, value, type } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: type === 'number' ? parseFloat(value) || 0 : value,
+      [name]: type === "number" ? parseFloat(value) || 0 : value,
     }));
   };
 
@@ -90,7 +100,9 @@ export const AdminCreateAuction: React.FC = () => {
   const setDurationFromNow = (minutes: number) => {
     const target = new Date(Date.now() + minutes * 60 * 1000);
     const tzOffset = target.getTimezoneOffset() * 60000;
-    const localIso = new Date(target.getTime() - tzOffset).toISOString().slice(0, 16);
+    const localIso = new Date(target.getTime() - tzOffset)
+      .toISOString()
+      .slice(0, 16);
     setFormData((prev) => ({ ...prev, endTime: localIso }));
   };
 
@@ -100,29 +112,29 @@ export const AdminCreateAuction: React.FC = () => {
 
     // Form Validations
     if (!formData.title.trim()) {
-      setErrorMsg('Auction Title is required.');
+      setErrorMsg("Auction Title is required.");
       return;
     }
     if (!formData.description.trim()) {
-      setErrorMsg('Description is required.');
+      setErrorMsg("Description is required.");
       return;
     }
     if (!formData.imageUrl.trim()) {
-      setErrorMsg('Image URL is required.');
+      setErrorMsg("Image URL is required.");
       return;
     }
     if (formData.retailValue <= 0) {
-      setErrorMsg('Retail Value must be greater than $0.00.');
+      setErrorMsg("Retail Value must be greater than $0.00.");
       return;
     }
     if (formData.registrationFee < 0) {
-      setErrorMsg('Registration Fee cannot be negative.');
+      setErrorMsg("Registration Fee cannot be negative.");
       return;
     }
 
     const selectedEndDate = new Date(formData.endTime);
     if (selectedEndDate.getTime() <= Date.now()) {
-      setErrorMsg('End Date & Time must be set in the future.');
+      setErrorMsg("End Date & Time must be set in the future.");
       return;
     }
 
@@ -137,7 +149,7 @@ export const AdminCreateAuction: React.FC = () => {
       const created = await api.createAuction(payload);
       navigate(`/auction/${created.id}`);
     } catch (err: any) {
-      setErrorMsg(err.response?.data?.message || 'Failed to create auction.');
+      setErrorMsg(err.response?.data?.message || "Failed to create auction.");
     } finally {
       setIsSubmitting(false);
     }
@@ -161,9 +173,12 @@ export const AdminCreateAuction: React.FC = () => {
           <Plus className="w-6 h-6" />
         </div>
         <div>
-          <h1 className="text-2xl sm:text-3xl font-black text-white">Create New Lowest Unique Bid Auction</h1>
+          <h1 className="text-2xl sm:text-3xl font-black text-white">
+            Create New Lowest Unique Bid Auction
+          </h1>
           <p className="text-xs sm:text-sm text-slate-400">
-            Define item details, registration fee, countdown expiration, and verified retail value.
+            Define item details, registration fee, countdown expiration, and
+            verified retail value.
           </p>
         </div>
       </div>
@@ -182,7 +197,7 @@ export const AdminCreateAuction: React.FC = () => {
               className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-200 border border-slate-700/60 transition-colors flex items-center gap-1.5"
             >
               <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-              <span>{preset.title.split('-')[0]}</span>
+              <span>{preset.title.split("-")[0]}</span>
             </button>
           ))}
         </div>
@@ -199,7 +214,6 @@ export const AdminCreateAuction: React.FC = () => {
       {/* Main Form */}
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="p-6 sm:p-8 rounded-3xl bg-slate-900/80 border border-slate-800 shadow-xl space-y-6">
-          
           {/* Title */}
           <div>
             <label className="text-xs font-bold text-slate-300 block mb-1.5 uppercase tracking-wide">
@@ -262,7 +276,7 @@ export const AdminCreateAuction: React.FC = () => {
                     className="w-full h-full object-cover"
                     onError={(e) => {
                       (e.target as HTMLImageElement).src =
-                        'https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=300&q=80';
+                        "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=300&q=80";
                     }}
                   />
                 ) : (
@@ -279,7 +293,9 @@ export const AdminCreateAuction: React.FC = () => {
                 Retail Value (USD $) *
               </label>
               <div className="relative">
-                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 font-mono text-sm">$</span>
+                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 font-mono text-sm">
+                  $
+                </span>
                 <input
                   type="number"
                   name="retailValue"
@@ -298,7 +314,9 @@ export const AdminCreateAuction: React.FC = () => {
                 Registration / Entry Fee (USD $) *
               </label>
               <div className="relative">
-                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 font-mono text-sm">$</span>
+                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 font-mono text-sm">
+                  $
+                </span>
                 <input
                   type="number"
                   name="registrationFee"
@@ -329,7 +347,9 @@ export const AdminCreateAuction: React.FC = () => {
 
             {/* Quick Duration Shortcuts */}
             <div className="mt-3 flex flex-wrap items-center gap-2">
-              <span className="text-[11px] text-slate-500 font-medium">Quick expiration buttons:</span>
+              <span className="text-[11px] text-slate-500 font-medium">
+                Quick expiration buttons:
+              </span>
               <button
                 type="button"
                 onClick={() => setDurationFromNow(2)}
@@ -367,7 +387,6 @@ export const AdminCreateAuction: React.FC = () => {
               </button>
             </div>
           </div>
-
         </div>
 
         {/* Submit Actions */}

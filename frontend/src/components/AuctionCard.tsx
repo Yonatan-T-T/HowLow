@@ -1,29 +1,35 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { 
-  Trophy, 
-  Tag, 
-  Users, 
-  ShieldCheck, 
-  CheckCircle2, 
-  ArrowRight
-} from 'lucide-react';
-import type { AuctionItem } from '../types/auction';
-import { LiveCountdown } from './LiveCountdown';
+import React from "react";
+import { Link } from "react-router-dom";
+import {
+  Trophy,
+  Tag,
+  Users,
+  ShieldCheck,
+  CheckCircle2,
+  ArrowRight,
+} from "lucide-react";
+import type { AuctionItem } from "../types/auction";
+import { LiveCountdown } from "./LiveCountdown";
 
 interface AuctionCardProps {
   auction: AuctionItem;
 }
 
 export const AuctionCard: React.FC<AuctionCardProps> = ({ auction }) => {
-  const isEnded = auction.status === 'Closed' || auction.status === 'NoWinner';
-  const isCancelled = auction.status === 'Cancelled';
-  const isWinnerDeclared = auction.status === 'Closed' && !!auction.winnerUsername;
+  const isEnded = auction.status === "Closed" || auction.status === "NoWinner";
+  const isCancelled = auction.status === "Cancelled";
+  const isWinnerDeclared =
+    auction.status === "Closed" && !!auction.winnerUsername;
 
   // Calculate potential savings if closed or estimated
-  const savingsPercent = auction.winningBidAmount && auction.retailValue > 0
-    ? Math.round(((auction.retailValue - auction.winningBidAmount) / auction.retailValue) * 100)
-    : null;
+  const savingsPercent =
+    auction.winningBidAmount && auction.retailValue > 0
+      ? Math.round(
+          ((auction.retailValue - auction.winningBidAmount) /
+            auction.retailValue) *
+            100,
+        )
+      : null;
 
   return (
     <div className="group relative rounded-2xl bg-slate-900/80 border border-slate-800 hover:border-slate-700/80 transition-all duration-300 hover:shadow-2xl hover:shadow-emerald-950/20 flex flex-col overflow-hidden backdrop-blur-sm">
@@ -36,7 +42,7 @@ export const AuctionCard: React.FC<AuctionCardProps> = ({ auction }) => {
           onError={(e) => {
             // High quality fallback image
             (e.target as HTMLImageElement).src =
-              'https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=800&q=80';
+              "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=800&q=80";
           }}
         />
 
@@ -46,7 +52,7 @@ export const AuctionCard: React.FC<AuctionCardProps> = ({ auction }) => {
         {/* Top Badges */}
         <div className="absolute top-3 left-3 right-3 flex items-center justify-between gap-2 z-10">
           {/* Status Badge */}
-          {auction.status === 'Active' && (
+          {auction.status === "Active" && (
             <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 backdrop-blur-md">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
               Live Auction
@@ -60,7 +66,7 @@ export const AuctionCard: React.FC<AuctionCardProps> = ({ auction }) => {
             </span>
           )}
 
-          {auction.status === 'NoWinner' && (
+          {auction.status === "NoWinner" && (
             <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-700/60 text-slate-300 border border-slate-600/50 backdrop-blur-md">
               No Winner (Tied)
             </span>
@@ -89,8 +95,12 @@ export const AuctionCard: React.FC<AuctionCardProps> = ({ auction }) => {
         <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between z-10">
           <LiveCountdown endTime={auction.endTime} variant="compact" />
           <div className="text-right">
-            <span className="text-[11px] uppercase tracking-wider text-slate-400 block font-medium">Retail Value</span>
-            <span className="text-sm font-bold text-slate-200 font-mono">${auction.retailValue.toLocaleString()}</span>
+            <span className="text-[11px] uppercase tracking-wider text-slate-400 block font-medium">
+              Retail Value
+            </span>
+            <span className="text-sm font-bold text-slate-200 font-mono">
+              ${auction.retailValue.toLocaleString()}
+            </span>
           </div>
         </div>
       </div>
@@ -129,13 +139,19 @@ export const AuctionCard: React.FC<AuctionCardProps> = ({ auction }) => {
                   <Trophy className="w-4 h-4" />
                 </div>
                 <div>
-                  <span className="text-[10px] uppercase font-semibold text-amber-400/80 tracking-wider block">Winner</span>
-                  <span className="text-xs font-bold text-slate-100">{auction.winnerUsername}</span>
+                  <span className="text-[10px] uppercase font-semibold text-amber-400/80 tracking-wider block">
+                    Winner
+                  </span>
+                  <span className="text-xs font-bold text-slate-100">
+                    {auction.winnerUsername}
+                  </span>
                 </div>
               </div>
 
               <div className="text-right">
-                <span className="text-[10px] uppercase font-semibold text-slate-400 tracking-wider block">Winning Bid</span>
+                <span className="text-[10px] uppercase font-semibold text-slate-400 tracking-wider block">
+                  Winning Bid
+                </span>
                 <span className="text-sm font-mono font-extrabold text-emerald-400">
                   ${auction.winningBidAmount?.toFixed(2)}
                 </span>
@@ -151,16 +167,24 @@ export const AuctionCard: React.FC<AuctionCardProps> = ({ auction }) => {
               <div className="p-2.5 rounded-lg bg-slate-950/60 border border-slate-800/80 flex items-center gap-2">
                 <Users className="w-4 h-4 text-emerald-400 shrink-0" />
                 <div>
-                  <span className="text-[10px] text-slate-400 uppercase tracking-wide block">Bidders</span>
-                  <span className="font-semibold text-slate-200">{auction.totalRegistrations} registered</span>
+                  <span className="text-[10px] text-slate-400 uppercase tracking-wide block">
+                    Bidders
+                  </span>
+                  <span className="font-semibold text-slate-200">
+                    {auction.totalRegistrations} registered
+                  </span>
                 </div>
               </div>
 
               <div className="p-2.5 rounded-lg bg-slate-950/60 border border-slate-800/80 flex items-center gap-2">
                 <Tag className="w-4 h-4 text-indigo-400 shrink-0" />
                 <div>
-                  <span className="text-[10px] text-slate-400 uppercase tracking-wide block">Blind Bids</span>
-                  <span className="font-semibold text-slate-200">{auction.totalBids} placed</span>
+                  <span className="text-[10px] text-slate-400 uppercase tracking-wide block">
+                    Blind Bids
+                  </span>
+                  <span className="font-semibold text-slate-200">
+                    {auction.totalBids} placed
+                  </span>
                 </div>
               </div>
             </div>
@@ -178,11 +202,17 @@ export const AuctionCard: React.FC<AuctionCardProps> = ({ auction }) => {
             to={`/auction/${auction.id}`}
             className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold transition-all duration-200 shadow-md ${
               isEnded
-                ? 'bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700'
-                : 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-900/30 hover:shadow-emerald-700/50'
+                ? "bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700"
+                : "bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-900/30 hover:shadow-emerald-700/50"
             }`}
           >
-            <span>{isEnded ? 'View Results' : auction.isUserRegistered ? 'Place Blind Bid' : 'Register & Bid'}</span>
+            <span>
+              {isEnded
+                ? "View Results"
+                : auction.isUserRegistered
+                  ? "Place Blind Bid"
+                  : "Register & Bid"}
+            </span>
             <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" />
           </Link>
         </div>

@@ -1,4 +1,10 @@
-export type AuctionStatus = 'Active' | 'Closed' | 'Cancelled' | 'NoWinner' | 'PendingApproval' | 'Rejected';
+export type AuctionStatus =
+  | "Active"
+  | "Closed"
+  | "Cancelled"
+  | "NoWinner"
+  | "PendingApproval"
+  | "Rejected";
 
 export interface User {
   id: number;
@@ -6,7 +12,7 @@ export interface User {
   email: string;
   phoneNumber: string;
   balance: number;
-  role: 'Admin' | 'User';
+  role: "Admin" | "User";
 }
 
 export interface AuthResponse {
@@ -21,7 +27,7 @@ export interface TestProfile {
   email: string;
   phoneNumber: string;
   password: string;
-  role: 'Admin' | 'User';
+  role: "Admin" | "User";
   balance: number;
 }
 
@@ -40,7 +46,7 @@ export interface TopUpRequest {
   receiverName: string;
   amount: number;
   transactionNumber: string;
-  status: 'Pending' | 'Approved' | 'Rejected';
+  status: "Pending" | "Approved" | "Rejected";
   createdAt: string;
   reviewedAt?: string | null;
   reviewedBy?: string | null;
