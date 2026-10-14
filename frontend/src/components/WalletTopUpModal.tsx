@@ -10,11 +10,13 @@ import {
   Send,
 } from "lucide-react";
 import { useUser } from "../context/UserContext";
+import { useLanguage } from "../context/LanguageContext";
 import { api } from "../services/api";
 import type { AgentAccount, TopUpRequest } from "../types/auction";
 
 export const WalletTopUpModal: React.FC = () => {
   const { currentUser, isTopUpOpen, closeTopUp, refreshUser } = useUser();
+  const { t } = useLanguage();
 
   // Active view: "form" | "history" | "success"
   const [activeTab, setActiveTab] = useState<"form" | "history">("form");
@@ -209,7 +211,7 @@ export const WalletTopUpModal: React.FC = () => {
                   : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
               }`}
             >
-              Deposit Funds
+              {t("wallet.depositFunds")}
             </button>
             <button
               onClick={() => setActiveTab("history")}
@@ -220,7 +222,7 @@ export const WalletTopUpModal: React.FC = () => {
               }`}
             >
               <History className="w-3.5 h-3.5" />
-              <span>Request Status</span>
+              <span>{t("wallet.requestStatus")}</span>
               {pendingCount > 0 && (
                 <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-amber-500 text-white font-bold ml-1">
                   {pendingCount}
@@ -231,10 +233,10 @@ export const WalletTopUpModal: React.FC = () => {
 
           <div className="text-right">
             <span className="text-[10px] text-slate-500 dark:text-slate-400 block">
-              Balance:
+              {t("wallet.balanceLabel")}
             </span>
             <span className="text-xs font-mono font-bold text-emerald-600 dark:text-emerald-400">
-              ${currentUser.balance.toFixed(2)}
+              {currentUser.balance.toFixed(2)} ETB
             </span>
           </div>
         </div>
@@ -247,19 +249,13 @@ export const WalletTopUpModal: React.FC = () => {
                 <Clock className="w-5 h-5 text-amber-500 shrink-0 mt-0.5 animate-pulse" />
                 <div>
                   <h4 className="font-bold text-sm">
-                    Top-Up Request Submitted &amp; Pending Approval!
+                    {t("wallet.requestSubmittedTitle")}
                   </h4>
                   <p className="text-xs mt-1 text-slate-600 dark:text-slate-400 leading-relaxed">
-                    Your request of{" "}
-                    <strong className="text-amber-700 dark:text-amber-300 font-mono">
-                      {successRequest.amount.toFixed(2)} ETB
-                    </strong>{" "}
-                    with Transaction Number{" "}
-                    <strong className="font-mono text-slate-900 dark:text-white">
-                      {successRequest.transactionNumber}
-                    </strong>{" "}
-                    has been recorded. An administrator will verify the Telebirr
-                    transfer and credit your wallet.
+                    {t("wallet.requestSubmittedDesc", {
+                      amount: successRequest.amount.toFixed(2),
+                      txn: successRequest.transactionNumber,
+                    })}
                   </p>
                 </div>
               </div>
@@ -269,11 +265,15 @@ export const WalletTopUpModal: React.FC = () => {
               <div className="flex justify-between py-1 border-b border-slate-200 dark:border-slate-800/80">
                 <span className="text-slate-500">Status:</span>
                 <span className="font-bold uppercase px-2 py-0.5 rounded bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30">
-                  {successRequest.status} (Wait for approval)
+                  {successRequest.status === "Pending"
+                    ? t("wallet.statusPending")
+                    : successRequest.status === "Approved"
+                      ? t("wallet.statusApproved")
+                      : t("wallet.statusRejected")}
                 </span>
               </div>
               <div className="flex justify-between py-1 border-b border-slate-200 dark:border-slate-800/80">
-                <span className="text-slate-500">Your Telebirr Phone:</span>
+                <span className="text-slate-500">{t("wallet.yourPhone")}</span>
                 <span className="font-mono font-bold text-slate-800 dark:text-slate-200">
                   {successRequest.senderPhoneNumber}
                 </span>
@@ -299,13 +299,13 @@ export const WalletTopUpModal: React.FC = () => {
                 className="flex-1 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-xs font-bold text-slate-800 dark:text-white transition-all flex items-center justify-center gap-1.5"
               >
                 <History className="w-3.5 h-3.5" />
-                <span>Track Status in Requests</span>
+                <span>{t("wallet.trackStatus")}</span>
               </button>
               <button
                 onClick={() => setSuccessRequest(null)}
                 className="flex-1 py-2.5 rounded-xl bg-[#008FD5] hover:bg-[#007cb8] text-xs font-bold text-white transition-all"
               >
-                New Request
+                {t("wallet.newRequest")}
               </button>
             </div>
           </div>
@@ -314,7 +314,7 @@ export const WalletTopUpModal: React.FC = () => {
           <div className="space-y-3 animate-fade-in">
             <div className="flex items-center justify-between">
               <h4 className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400">
-                Your Deposit Requests
+                {t("wallet.recentRequests")}
               </h4>
               <button
                 onClick={fetchMyRequests}
@@ -323,13 +323,13 @@ export const WalletTopUpModal: React.FC = () => {
                 <RefreshCw
                   className={`w-3 h-3 ${isLoadingRequests ? "animate-spin" : ""}`}
                 />
-                <span>Refresh</span>
+                <span>{t("wallet.refreshBtn")}</span>
               </button>
             </div>
 
             {myRequests.length === 0 ? (
               <div className="text-center py-8 text-xs text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-950 rounded-2xl border border-slate-200 dark:border-slate-800">
-                No deposit requests submitted yet.
+                {t("wallet.noRequestsYet")}
               </div>
             ) : (
               <div className="space-y-2 max-h-80 overflow-y-auto pr-1">
@@ -352,8 +352,10 @@ export const WalletTopUpModal: React.FC = () => {
                         }`}
                       >
                         {req.status === "Pending"
-                          ? "Pending Approval"
-                          : req.status}
+                          ? t("wallet.statusPending")
+                          : req.status === "Approved"
+                            ? t("wallet.statusApproved")
+                            : t("wallet.statusRejected")}
                       </span>
                     </div>
 
@@ -386,14 +388,13 @@ export const WalletTopUpModal: React.FC = () => {
               <div className="flex items-center justify-between mb-1 text-[11px] font-bold text-emerald-200">
                 <span className="flex items-center gap-1.5">
                   <Clock className="w-3.5 h-3.5" />
-                  <span>Time limit</span>
+                  <span>{t("wallet.timeLimit")}</span>
                 </span>
                 <span className="font-mono bg-black/30 px-2 py-0.5 rounded">
                   {formatTimer(timeLeft)}
                 </span>
               </div>
-              Before creating a request, transfer funds within 10 minutes using
-              the payment details provided below.
+              {t("wallet.timeLimitDesc")}
             </div>
 
             {/* Error Message */}
@@ -409,7 +410,7 @@ export const WalletTopUpModal: React.FC = () => {
               {/* Account Number */}
               <div className="flex items-center justify-between gap-2 text-xs sm:text-sm">
                 <div className="flex items-center gap-1.5 text-[#1e3a5f] dark:text-blue-200 font-bold">
-                  <span>የቴሌ ብር ሂሳብ ቁጥር</span>
+                  <span>{t("wallet.accountNumber")}</span>
                   <span className="font-mono font-extrabold text-[#008FD5] dark:text-[#38bdf8] text-sm sm:text-base">
                     {agentAccount.receiverPhoneNumber}
                   </span>
@@ -433,7 +434,7 @@ export const WalletTopUpModal: React.FC = () => {
               {/* Receiver Name */}
               <div className="flex items-center justify-between gap-2 text-xs sm:text-sm">
                 <div className="flex items-center gap-1.5 text-[#1e3a5f] dark:text-blue-200 font-bold truncate">
-                  <span className="shrink-0">የተቀባይ ስም</span>
+                  <span className="shrink-0">{t("wallet.accountName")}</span>
                   <span className="text-slate-800 dark:text-slate-100 font-medium truncate">
                     {agentAccount.receiverName}
                   </span>
@@ -456,7 +457,7 @@ export const WalletTopUpModal: React.FC = () => {
             {/* Amount input row matching user's image */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-1">
               <label className="text-xs sm:text-[13px] font-bold text-[#1e3a5f] dark:text-blue-200">
-                Amount (Min 50.00 ETB / Max 15 000.00 ETB):
+                {t("wallet.amountRange")}
               </label>
               <input
                 type="number"
@@ -473,7 +474,7 @@ export const WalletTopUpModal: React.FC = () => {
             {/* Preset Amount Chips matching user's image */}
             <div>
               <span className="block text-xs font-semibold text-[#1e3a5f] dark:text-blue-200 mb-1.5">
-                Please enter or select your deposit amount
+                {t("wallet.selectAmount")}
               </span>
               <div className="grid grid-cols-5 gap-1.5">
                 {presets.map((val) => (
@@ -496,7 +497,7 @@ export const WalletTopUpModal: React.FC = () => {
             {/* User's registered phone number row matching user's image */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-1">
               <label className="text-xs sm:text-[13px] font-bold text-[#1e3a5f] dark:text-blue-200">
-                የእርስዎ የቴሌ ብር ሂሳብ ቁጥር:
+                {t("wallet.yourPhone")}
               </label>
               <input
                 type="text"
@@ -512,10 +513,10 @@ export const WalletTopUpModal: React.FC = () => {
             <div className="pt-2 border-t border-slate-200 dark:border-slate-800">
               <div className="flex items-center justify-between mb-1">
                 <label className="block text-xs font-bold text-slate-800 dark:text-slate-200">
-                  የግብይት ቁጥር / Transaction Number:
+                  {t("wallet.txNumberLabel")}
                 </label>
                 <span className="text-[10px] text-[#008FD5] dark:text-blue-300 font-semibold">
-                  From Telebirr SMS
+                  {t("wallet.fromTelebirrSms")}
                 </span>
               </div>
               <input
@@ -529,9 +530,7 @@ export const WalletTopUpModal: React.FC = () => {
                 className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-mono text-sm focus:outline-none focus:ring-2 focus:ring-[#008FD5]/40 focus:border-[#008FD5] uppercase placeholder:normal-case placeholder-slate-400"
               />
               <span className="text-[10px] text-slate-500 dark:text-slate-400 block mt-1">
-                After completing the transfer in your Telebirr app, enter the
-                transaction number here and submit for administrator
-                verification.
+                {t("wallet.smsHelp")}
               </span>
             </div>
 
@@ -544,12 +543,12 @@ export const WalletTopUpModal: React.FC = () => {
               {isSubmitting ? (
                 <>
                   <RefreshCw className="w-4 h-4 animate-spin" />
-                  <span>Submitting request...</span>
+                  <span>{t("wallet.submittingRequest")}</span>
                 </>
               ) : (
                 <>
                   <Send className="w-4 h-4" />
-                  <span>ጥያቄውን ላክ / Submit Top-Up Request</span>
+                  <span>{t("wallet.submitRequestBtn")}</span>
                 </>
               )}
             </button>

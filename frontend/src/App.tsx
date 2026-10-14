@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
 import { UserProvider, useUser } from "./context/UserContext";
 import { ThemeProvider } from "./context/ThemeContext";
+import { LanguageProvider, useLanguage } from "./context/LanguageContext";
 import { Navbar } from "./components/Navbar";
 import { WalletTopUpModal } from "./components/WalletTopUpModal";
 import { HomeCatalog } from "./views/HomeCatalog";
@@ -14,6 +15,7 @@ import { ShieldCheck } from "lucide-react";
 
 function AppContent() {
   const { currentUser } = useUser();
+  const { t } = useLanguage();
   const isAdmin = currentUser?.role === "Admin";
 
   return (
@@ -46,10 +48,10 @@ function AppContent() {
                 UL
               </div>
               <span className="font-semibold text-slate-700 dark:text-slate-400">
-                Unique Low Auction Protocol &copy; {new Date().getFullYear()}
+                {t("footer.copyright")} &copy; {new Date().getFullYear()}
               </span>
               <span className="hidden sm:inline">
-                &bull; Guaranteed Lowest Unique Bid Algorithm
+                &bull; {t("footer.algorithm")}
               </span>
             </div>
 
@@ -58,19 +60,19 @@ function AppContent() {
                 to="/"
                 className="hover:text-slate-900 dark:hover:text-slate-300 transition-colors"
               >
-                Catalog
+                {t("footer.catalog")}
               </Link>
               {isAdmin && (
                 <Link
                   to="/admin"
                   className="hover:text-slate-900 dark:hover:text-slate-300 transition-colors"
                 >
-                  Admin Portal
+                  {t("footer.adminPortal")}
                 </Link>
               )}
               <span className="flex items-center gap-1 text-slate-600 dark:text-slate-400">
                 <ShieldCheck className="w-3.5 h-3.5 text-emerald-500 dark:text-emerald-400" />{" "}
-                100% Blind & Provably Fair
+                {t("footer.fairness")}
               </span>
             </div>
           </div>
@@ -83,9 +85,11 @@ function AppContent() {
 function App() {
   return (
     <ThemeProvider>
-      <UserProvider>
-        <AppContent />
-      </UserProvider>
+      <LanguageProvider>
+        <UserProvider>
+          <AppContent />
+        </UserProvider>
+      </LanguageProvider>
     </ThemeProvider>
   );
 }

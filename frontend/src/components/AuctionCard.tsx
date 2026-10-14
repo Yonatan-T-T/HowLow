@@ -10,12 +10,14 @@ import {
 } from "lucide-react";
 import type { AuctionItem } from "../types/auction";
 import { LiveCountdown } from "./LiveCountdown";
+import { useLanguage } from "../context/LanguageContext";
 
 interface AuctionCardProps {
   auction: AuctionItem;
 }
 
 export const AuctionCard: React.FC<AuctionCardProps> = ({ auction }) => {
+  const { t } = useLanguage();
   const isEnded = auction.status === "Closed" || auction.status === "NoWinner";
   const isCancelled = auction.status === "Cancelled";
   const isWinnerDeclared =
@@ -55,20 +57,20 @@ export const AuctionCard: React.FC<AuctionCardProps> = ({ auction }) => {
           {auction.status === "Active" && (
             <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 backdrop-blur-md">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
-              Live Auction
+              {t("home.filterActive")}
             </span>
           )}
 
           {isWinnerDeclared && (
             <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-500/20 text-amber-300 border border-amber-500/40 backdrop-blur-md">
               <Trophy className="w-3.5 h-3.5 text-amber-400" />
-              Winner Declared
+              {t("card.winnerDeclared")}
             </span>
           )}
 
           {auction.status === "NoWinner" && (
             <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-700/60 text-slate-300 border border-slate-600/50 backdrop-blur-md">
-              No Winner (Tied)
+              {t("card.closedNoWinner")}
             </span>
           )}
 
@@ -82,11 +84,11 @@ export const AuctionCard: React.FC<AuctionCardProps> = ({ auction }) => {
           {auction.isUserRegistered ? (
             <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-600/30 text-emerald-200 border border-emerald-400/40 backdrop-blur-md">
               <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-              Registered
+              {t("card.registeredBidders")}
             </span>
           ) : (
             <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-slate-900/80 text-slate-300 border border-slate-700/60 backdrop-blur-md">
-              Fee: ${auction.registrationFee.toFixed(2)}
+              {t("card.entryFee")}: {auction.registrationFee.toFixed(2)} ETB
             </span>
           )}
         </div>
@@ -96,10 +98,10 @@ export const AuctionCard: React.FC<AuctionCardProps> = ({ auction }) => {
           <LiveCountdown endTime={auction.endTime} variant="compact" />
           <div className="text-right">
             <span className="text-[11px] uppercase tracking-wider text-slate-400 block font-medium">
-              Retail Value
+              {t("card.retailValue")}
             </span>
             <span className="text-sm font-bold text-slate-200 font-mono">
-              ${auction.retailValue.toLocaleString()}
+              {auction.retailValue.toLocaleString()} ETB
             </span>
           </div>
         </div>
@@ -112,7 +114,7 @@ export const AuctionCard: React.FC<AuctionCardProps> = ({ auction }) => {
           <div className="flex items-center gap-1.5 mb-2 flex-wrap">
             {auction.sellerUsername ? (
               <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-purple-500/20 text-purple-300 border border-purple-500/30">
-                Seller: @{auction.sellerUsername}
+                {t("card.sellerCommunity")}: @{auction.sellerUsername}
               </span>
             ) : (
               <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-slate-800 text-slate-400">
@@ -120,7 +122,7 @@ export const AuctionCard: React.FC<AuctionCardProps> = ({ auction }) => {
               </span>
             )}
             <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/20">
-              100% Brand New
+              {t("card.brandNew")}
             </span>
           </div>
 
@@ -150,10 +152,10 @@ export const AuctionCard: React.FC<AuctionCardProps> = ({ auction }) => {
 
               <div className="text-right">
                 <span className="text-[10px] uppercase font-semibold text-slate-400 tracking-wider block">
-                  Winning Bid
+                  {t("card.winningBid")}
                 </span>
                 <span className="text-sm font-mono font-extrabold text-emerald-400">
-                  ${auction.winningBidAmount?.toFixed(2)}
+                  {auction.winningBidAmount?.toFixed(2)} ETB
                 </span>
                 {savingsPercent && (
                   <span className="text-[10px] font-semibold text-amber-400 block">
@@ -168,10 +170,10 @@ export const AuctionCard: React.FC<AuctionCardProps> = ({ auction }) => {
                 <Users className="w-4 h-4 text-emerald-400 shrink-0" />
                 <div>
                   <span className="text-[10px] text-slate-400 uppercase tracking-wide block">
-                    Bidders
+                    {t("card.registeredBidders")}
                   </span>
                   <span className="font-semibold text-slate-200">
-                    {auction.totalRegistrations} registered
+                    {auction.totalRegistrations}
                   </span>
                 </div>
               </div>
@@ -180,10 +182,10 @@ export const AuctionCard: React.FC<AuctionCardProps> = ({ auction }) => {
                 <Tag className="w-4 h-4 text-indigo-400 shrink-0" />
                 <div>
                   <span className="text-[10px] text-slate-400 uppercase tracking-wide block">
-                    Blind Bids
+                    {t("home.statsBids")}
                   </span>
                   <span className="font-semibold text-slate-200">
-                    {auction.totalBids} placed
+                    {auction.totalBids}
                   </span>
                 </div>
               </div>
@@ -195,7 +197,7 @@ export const AuctionCard: React.FC<AuctionCardProps> = ({ auction }) => {
         <div className="mt-5 pt-4 border-t border-slate-800/80 flex items-center justify-between gap-3">
           <div className="flex items-center gap-1.5 text-xs text-slate-400">
             <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-            <span>Blind & Fair</span>
+            <span>{t("home.statsFair")}</span>
           </div>
 
           <Link
@@ -208,10 +210,8 @@ export const AuctionCard: React.FC<AuctionCardProps> = ({ auction }) => {
           >
             <span>
               {isEnded
-                ? "View Results"
-                : auction.isUserRegistered
-                  ? "Place Blind Bid"
-                  : "Register & Bid"}
+                ? t("card.ended")
+                : t("card.viewAuction")}
             </span>
             <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" />
           </Link>

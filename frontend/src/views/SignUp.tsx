@@ -16,10 +16,12 @@ import {
   Check,
 } from "lucide-react";
 import { useUser } from "../context/UserContext";
+import { useLanguage } from "../context/LanguageContext";
 
 export const SignUp: React.FC = () => {
   const navigate = useNavigate();
   const { signup } = useUser();
+  const { t } = useLanguage();
 
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
@@ -104,10 +106,10 @@ export const SignUp: React.FC = () => {
           </div>
           <div>
             <h1 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">
-              Create an Account
+              {t("auth.signupTitle")}
             </h1>
             <p className="text-xs text-slate-500 dark:text-slate-400">
-              Join UniqueLow to place secret bids and win premium auctions
+              {t("auth.signupSubtitle")}
             </p>
           </div>
         </div>
@@ -119,11 +121,10 @@ export const SignUp: React.FC = () => {
           </div>
           <div>
             <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 block">
-              $100.00 Starting Wallet Bonus
+              {t("auth.bonusBadge")}
             </span>
             <span className="text-[11px] text-slate-500 dark:text-slate-400">
-              Every newly registered profile automatically gets $100 starting
-              funds.
+              {t("auth.bonusDesc")}
             </span>
           </div>
         </div>
@@ -147,7 +148,7 @@ export const SignUp: React.FC = () => {
           {/* Username */}
           <div>
             <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
-              Username
+              {t("auth.usernameLabel")}
             </label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
@@ -156,7 +157,7 @@ export const SignUp: React.FC = () => {
               <input
                 type="text"
                 required
-                placeholder="Choose a username"
+                placeholder={t("auth.usernamePlaceholder")}
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 className="w-full pl-10 pr-4 py-3 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 text-slate-900 dark:text-slate-100 placeholder-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 transition-all font-medium"
@@ -172,7 +173,7 @@ export const SignUp: React.FC = () => {
           {/* Email */}
           <div>
             <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
-              Email Address
+              {t("auth.emailLabel")}
             </label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
@@ -181,7 +182,7 @@ export const SignUp: React.FC = () => {
               <input
                 type="email"
                 required
-                placeholder="you@example.com"
+                placeholder={t("auth.emailPlaceholder")}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full pl-10 pr-4 py-3 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 text-slate-900 dark:text-slate-100 placeholder-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 transition-all font-medium"
@@ -193,7 +194,7 @@ export const SignUp: React.FC = () => {
           <div>
             <div className="flex items-center justify-between mb-1.5">
               <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
-                Telebirr Phone Number / የስልክ ቁጥር
+                {t("auth.phoneLabel")}
               </label>
               <span className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded">
                 Required for Top-Up
@@ -206,22 +207,21 @@ export const SignUp: React.FC = () => {
               <input
                 type="tel"
                 required
-                placeholder="09XXXXXXXX or 07XXXXXXXX"
+                placeholder={t("auth.phonePlaceholder")}
                 value={phoneNumber}
                 onChange={(e) => setPhoneNumber(e.target.value)}
                 className="w-full pl-10 pr-4 py-3 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 text-slate-900 dark:text-slate-100 placeholder-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 transition-all font-medium font-mono"
               />
             </div>
             <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
-              Used when transferring funds via Telebirr mobile money for wallet
-              deposits and approval.
+              {t("auth.phoneHelp")}
             </p>
           </div>
 
           {/* Password */}
           <div>
             <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
-              Password
+              {t("auth.passwordLabel")}
             </label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
@@ -230,7 +230,7 @@ export const SignUp: React.FC = () => {
               <input
                 type={showPassword ? "text" : "password"}
                 required
-                placeholder="At least 6 characters"
+                placeholder={t("auth.passwordPlaceholder")}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full pl-10 pr-11 py-3 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 text-slate-900 dark:text-slate-100 placeholder-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 transition-all font-medium"
@@ -253,7 +253,7 @@ export const SignUp: React.FC = () => {
           {/* Confirm Password */}
           <div>
             <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
-              Confirm Password
+              {t("auth.confirmPasswordLabel")}
             </label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
@@ -262,7 +262,7 @@ export const SignUp: React.FC = () => {
               <input
                 type={showPassword ? "text" : "password"}
                 required
-                placeholder="Confirm your password"
+                placeholder={t("auth.passwordPlaceholder")}
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 className="w-full pl-10 pr-4 py-3 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 text-slate-900 dark:text-slate-100 placeholder-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 transition-all font-medium"
@@ -278,7 +278,7 @@ export const SignUp: React.FC = () => {
           {/* Role selector for easy sandbox / admin testing */}
           <div>
             <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
-              Account Type
+              {t("auth.accountTypeLabel")}
             </label>
             <div className="grid grid-cols-2 gap-2">
               <button
@@ -291,7 +291,7 @@ export const SignUp: React.FC = () => {
                 }`}
               >
                 {role === "User" && <Check className="w-3.5 h-3.5" />}
-                <span>Bidder (Standard)</span>
+                <span>{t("auth.roleUser")}</span>
               </button>
               <button
                 type="button"
@@ -303,7 +303,7 @@ export const SignUp: React.FC = () => {
                 }`}
               >
                 {role === "Admin" && <Check className="w-3.5 h-3.5" />}
-                <span>Admin (Manager)</span>
+                <span>{t("auth.roleAdmin")}</span>
               </button>
             </div>
           </div>
@@ -323,7 +323,7 @@ export const SignUp: React.FC = () => {
               <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
             ) : (
               <>
-                <span>Create Account</span>
+                <span>{t("auth.signUpBtn")}</span>
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
               </>
             )}
@@ -332,12 +332,12 @@ export const SignUp: React.FC = () => {
 
         <div className="mt-8 pt-6 border-t border-slate-200 dark:border-slate-800/80 text-center">
           <p className="text-xs text-slate-600 dark:text-slate-400">
-            Already have an account?{" "}
+            {t("auth.alreadyHaveAccount")}{" "}
             <Link
               to="/login"
               className="font-bold text-emerald-600 dark:text-emerald-400 hover:underline"
             >
-              Sign In
+              {t("auth.signInBtn")}
             </Link>
           </p>
         </div>

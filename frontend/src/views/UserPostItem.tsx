@@ -17,6 +17,7 @@ import {
   Target,
 } from "lucide-react";
 import { useUser } from "../context/UserContext";
+import { useLanguage } from "../context/LanguageContext";
 import { api } from "../services/api";
 import type { AuctionItem, UserPostItemPayload } from "../types/auction";
 
@@ -83,6 +84,7 @@ const PRESET_ITEMS: SamplePreset[] = [
 
 export const UserPostItem: React.FC = () => {
   const { currentUser, refreshUser, openTopUp } = useUser();
+  const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState<"create" | "my_items">("create");
 
   // Form State
@@ -299,71 +301,62 @@ export const UserPostItem: React.FC = () => {
         <div className="relative z-10">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-700 dark:text-emerald-400 text-xs font-bold mb-3">
             <Sparkles className="w-3.5 h-3.5" />
-            <span>Community Seller Hub &bull; 60% Seller Profit Share</span>
+            <span>{t("postItem.hubTitle")} &bull; 60%</span>
           </div>
           <h1 className="text-2xl sm:text-4xl font-black text-slate-900 dark:text-white tracking-tight">
-            List Your Item on{" "}
-            <span className="text-emerald-600 dark:text-emerald-400">
-              HowLow
-            </span>
+            {t("postItem.hubTitle")}
           </h1>
           <p className="mt-2 text-sm sm:text-base text-slate-600 dark:text-slate-300 max-w-2xl leading-relaxed">
-            Turn your brand new, authentic items into high-engagement lowest
-            unique bid auctions. Earn{" "}
-            <strong className="text-emerald-700 dark:text-emerald-400 font-bold">
-              60% of all gross auction revenue
-            </strong>{" "}
-            (bidder entry fees + winning bid) directly credited to your wallet
-            upon completion.
+            {t("postItem.hubSubtitle")}
           </p>
 
           {/* Quick Rules Banner */}
           <div className="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-3">
             <div className="p-3.5 rounded-2xl bg-white/90 dark:bg-slate-950/60 border border-emerald-500/20 dark:border-slate-800 backdrop-blur-sm shadow-sm">
               <span className="text-[10px] uppercase font-bold text-emerald-600 dark:text-emerald-400 block tracking-wider">
-                Rule 1
+                {t("postItem.rule1Tag")}
               </span>
               <span className="text-xs font-bold text-slate-900 dark:text-white block mt-0.5">
-                1,000 ETB Listing Fee
+                {t("postItem.rule1Title")}
               </span>
               <span className="text-[10px] text-slate-500 dark:text-slate-400">
-                Non-refundable submission fee
+                {t("postItem.rule1Desc")}
               </span>
             </div>
 
             <div className="p-3.5 rounded-2xl bg-white/90 dark:bg-slate-950/60 border border-cyan-500/20 dark:border-slate-800 backdrop-blur-sm shadow-sm">
               <span className="text-[10px] uppercase font-bold text-cyan-600 dark:text-cyan-400 block tracking-wider">
-                Rule 2
+                {t("postItem.rule2Tag")}
               </span>
               <span className="text-xs font-bold text-slate-900 dark:text-white block mt-0.5">
-                100% Brand New
+                {t("postItem.rule2Title")}
               </span>
               <span className="text-[10px] text-slate-500 dark:text-slate-400">
-                Sealed &amp; exact description match
+                {t("postItem.rule2Desc")}
               </span>
             </div>
 
             <div className="p-3.5 rounded-2xl bg-white/90 dark:bg-slate-950/60 border border-amber-500/20 dark:border-slate-800 backdrop-blur-sm shadow-sm">
               <span className="text-[10px] uppercase font-bold text-amber-600 dark:text-amber-400 block tracking-wider">
-                Rule 3
+                {t("postItem.rule3Tag")}
               </span>
               <span className="text-xs font-bold text-slate-900 dark:text-white block mt-0.5">
-                Zero Tolerance
+                {t("postItem.rule3Title")}
               </span>
               <span className="text-[10px] text-slate-500 dark:text-slate-400">
-                Non-similarity = cancel &amp; fee forfeit
+                {t("postItem.rule3Desc")}
               </span>
             </div>
 
             <div className="p-3.5 rounded-2xl bg-white/90 dark:bg-slate-950/60 border border-purple-500/20 dark:border-slate-800 backdrop-blur-sm shadow-sm">
               <span className="text-[10px] uppercase font-bold text-purple-600 dark:text-purple-400 block tracking-wider">
-                Rule 4
+                {t("postItem.rule4Tag")}
               </span>
               <span className="text-xs font-bold text-slate-900 dark:text-white block mt-0.5">
-                60% / 40% Profit Split
+                {t("postItem.rule4Title")}
               </span>
               <span className="text-[10px] text-slate-500 dark:text-slate-400">
-                60% Seller / 40% Platform
+                {t("postItem.rule4Desc")}
               </span>
             </div>
           </div>
@@ -381,7 +374,7 @@ export const UserPostItem: React.FC = () => {
           }`}
         >
           <Plus className="w-4 h-4" />
-          <span>Post New Item (1,000 ETB)</span>
+          <span>{t("postItem.tabCreate")}</span>
         </button>
 
         <button
@@ -393,7 +386,7 @@ export const UserPostItem: React.FC = () => {
           }`}
         >
           <ShoppingBag className="w-4 h-4" />
-          <span>My Listed Items &amp; Earnings ({myItems.length})</span>
+          <span>{t("postItem.tabMyItems")} ({myItems.length})</span>
         </button>
       </div>
 
@@ -785,19 +778,18 @@ export const UserPostItem: React.FC = () => {
               <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400">
                 <Calculator className="w-5 h-5" />
                 <h3 className="text-sm font-bold uppercase tracking-wider">
-                  Revenue &amp; Net Profit Calculator
+                  {t("postItem.calcTitle")}
                 </h3>
               </div>
               <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
-                Live simulation based on the{" "}
-                <strong>60% Seller / 40% Platform</strong> revenue split rule.
+                {t("postItem.calcSubtitle")}
               </p>
 
               {/* Baseline Cost Breakdown */}
               <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 space-y-2">
                 <div className="flex items-center justify-between text-xs">
                   <span className="text-slate-500 dark:text-slate-400">
-                    Item Retail Value:
+                    {t("postItem.calcRetailCost")}
                   </span>
                   <span className="font-mono font-bold text-slate-900 dark:text-white">
                     {numRetailValue.toLocaleString()} ETB
@@ -805,7 +797,7 @@ export const UserPostItem: React.FC = () => {
                 </div>
                 <div className="flex items-center justify-between text-xs">
                   <span className="text-slate-500 dark:text-slate-400">
-                    Listing Submission Fee:
+                    {t("postItem.calcListingFee")}
                   </span>
                   <span className="font-mono font-bold text-slate-900 dark:text-white">
                     {LISTING_FEE.toLocaleString()} ETB
@@ -813,7 +805,7 @@ export const UserPostItem: React.FC = () => {
                 </div>
                 <div className="flex items-center justify-between text-xs pt-1 border-t border-slate-200 dark:border-slate-800">
                   <span className="font-bold text-slate-700 dark:text-slate-300">
-                    Total Seller Cost:
+                    {t("postItem.calcTotalCost")}
                   </span>
                   <span className="font-mono font-bold text-slate-900 dark:text-white">
                     {totalSellerCost.toLocaleString()} ETB
@@ -826,10 +818,10 @@ export const UserPostItem: React.FC = () => {
                 <div className="flex items-center justify-between text-xs">
                   <span className="font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
                     <Target className="w-3.5 h-3.5 text-emerald-500" />
-                    <span>Simulated Bidders</span>
+                    <span>{t("postItem.calcSimulatedBidders")}</span>
                   </span>
                   <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400">
-                    ~{simulatedEntrants.toLocaleString()} entrants
+                    ~{simulatedEntrants.toLocaleString()}
                   </span>
                 </div>
 
@@ -845,7 +837,7 @@ export const UserPostItem: React.FC = () => {
                         : "border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
                     }`}
                   >
-                    Breakeven
+                    {t("postItem.btnBreakeven")}
                   </button>
                   <button
                     type="button"
@@ -858,7 +850,7 @@ export const UserPostItem: React.FC = () => {
                         : "border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
                     }`}
                   >
-                    Target (+25%)
+                    {t("postItem.btnTarget")}
                   </button>
                   <button
                     type="button"
@@ -871,7 +863,7 @@ export const UserPostItem: React.FC = () => {
                         : "border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
                     }`}
                   >
-                    High (+50%)
+                    {t("postItem.btnHigh")}
                   </button>
                 </div>
 
@@ -913,7 +905,7 @@ export const UserPostItem: React.FC = () => {
               <div className="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800 text-xs">
                 <div className="flex items-center justify-between py-1">
                   <span className="text-slate-500 dark:text-slate-400">
-                    Entry Fee:
+                    {t("postItem.calcEntryFee")}
                   </span>
                   <span className="font-mono font-bold text-slate-900 dark:text-white">
                     {numRegFee} ETB
@@ -921,7 +913,7 @@ export const UserPostItem: React.FC = () => {
                 </div>
                 <div className="flex items-center justify-between py-1">
                   <span className="text-slate-500 dark:text-slate-400">
-                    Gross Auction Pool:
+                    {t("postItem.calcGrossPool")}
                   </span>
                   <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400">
                     {estimatedGrossRevenue.toLocaleString()} ETB
@@ -933,7 +925,7 @@ export const UserPostItem: React.FC = () => {
               <div className="grid grid-cols-2 gap-3 pt-1">
                 <div className="p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-center">
                   <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-400 block">
-                    Your 60% Payout
+                    {t("postItem.calcSellerPayout")}
                   </span>
                   <span className="text-base font-black font-mono text-emerald-600 dark:text-emerald-400 block mt-1">
                     {estimatedSellerShare.toLocaleString()} ETB
@@ -945,7 +937,7 @@ export const UserPostItem: React.FC = () => {
 
                 <div className="p-3.5 rounded-2xl bg-purple-500/10 border border-purple-500/30 text-center">
                   <span className="text-[10px] font-bold uppercase tracking-wider text-purple-700 dark:text-purple-400 block">
-                    System 40% Share
+                    {t("postItem.calcSystemShare")}
                   </span>
                   <span className="text-base font-black font-mono text-purple-700 dark:text-purple-300 block mt-1">
                     {estimatedSystemShare.toLocaleString()} ETB
@@ -967,8 +959,8 @@ export const UserPostItem: React.FC = () => {
                 <div className="flex items-center justify-between mb-1">
                   <span className="text-[10px] font-bold uppercase tracking-wider">
                     {estimatedNetProfit >= 0
-                      ? "Estimated Net Profit"
-                      : "Projected Shortfall"}
+                      ? t("postItem.calcNetProfit")
+                      : t("postItem.calcShortfall")}
                   </span>
                   <span
                     className={`text-xs font-mono font-bold px-2 py-0.5 rounded-full ${
@@ -998,8 +990,8 @@ export const UserPostItem: React.FC = () => {
 
                 <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-2 leading-tight">
                   {estimatedNetProfit >= 0
-                    ? `Net profit after recovering both your ${numRetailValue.toLocaleString()} ETB item value and 1,000 ETB listing fee.`
-                    : `Requires at least ~${breakevenEntrants.toLocaleString()} bidders to fully cover your item value and 1,000 ETB listing fee.`}
+                    ? t("postItem.calcNetProfitNote")
+                    : t("postItem.calcShortfallNote")}
                 </p>
               </div>
 

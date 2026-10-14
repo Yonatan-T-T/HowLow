@@ -8,6 +8,7 @@ import {
   Sparkles,
   AlertCircle,
 } from "lucide-react";
+import { useLanguage } from "../context/LanguageContext";
 
 interface HowItWorksModalProps {
   isOpen: boolean;
@@ -18,6 +19,7 @@ export const HowItWorksModal: React.FC<HowItWorksModalProps> = ({
   isOpen,
   onClose,
 }) => {
+  const { t } = useLanguage();
   if (!isOpen) return null;
 
   return (
@@ -39,10 +41,10 @@ export const HowItWorksModal: React.FC<HowItWorksModalProps> = ({
           </div>
           <div>
             <h2 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white">
-              How "Lowest Unique Bid" Works
+              {t("howItWorks.title")}
             </h2>
             <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400">
-              A thrilling strategy game where the lowest solo bid wins!
+              {t("howItWorks.subtitle")}
             </p>
           </div>
         </div>
@@ -54,11 +56,10 @@ export const HowItWorksModal: React.FC<HowItWorksModalProps> = ({
               1
             </span>
             <h4 className="font-semibold text-slate-900 dark:text-white text-sm">
-              Register with Entry Fee
+              {t("howItWorks.step1Title")}
             </h4>
             <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
-              Pay a small nominal entry fee to unlock bidding access for that
-              auction.
+              {t("howItWorks.step1Desc")}
             </p>
           </div>
 
@@ -67,11 +68,10 @@ export const HowItWorksModal: React.FC<HowItWorksModalProps> = ({
               2
             </span>
             <h4 className="font-semibold text-slate-900 dark:text-white text-sm">
-              Place Single Secret Bid
+              {t("howItWorks.step2Title")}
             </h4>
             <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
-              Submit your secret bid (e.g. $0.05, $0.12). Each bidder can only
-              bid once per auction, completely blind.
+              {t("howItWorks.step2Desc")}
             </p>
           </div>
 
@@ -80,11 +80,10 @@ export const HowItWorksModal: React.FC<HowItWorksModalProps> = ({
               3
             </span>
             <h4 className="font-semibold text-slate-900 dark:text-white text-sm">
-              Resolution & Win
+              {t("howItWorks.step3Title")}
             </h4>
             <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
-              All duplicate bids are discarded. The single lowest remaining bid
-              wins the luxury prize!
+              {t("howItWorks.step3Desc")}
             </p>
           </div>
         </div>
@@ -167,33 +166,14 @@ export const HowItWorksModal: React.FC<HowItWorksModalProps> = ({
         {/* Community Seller & 60/40 Profit Rules */}
         <div className="p-4 rounded-2xl bg-purple-50 dark:bg-purple-950/20 border border-purple-200 dark:border-purple-800/40 text-xs text-purple-950 dark:text-purple-200 space-y-2 mb-2">
           <span className="font-bold uppercase tracking-wider text-[11px] text-purple-700 dark:text-purple-300 block">
-            Selling on HowLow: 60% Seller / 40% Platform Rules
+            {t("howItWorks.sellerRulesTitle")}
           </span>
           <ul className="space-y-1.5 list-disc pl-4 text-slate-700 dark:text-slate-300">
-            <li>
-              <strong>1,000 ETB Listing Fee:</strong> Paid up front upon
-              submission (non-refundable).
-            </li>
-            <li>
-              <strong>100% Brand New Condition:</strong> All items must be
-              factory sealed and exactly as described. Any discrepancy or
-              counterfeit results in immediate cancellation and forfeiture of
-              the 1,000 ETB fee.
-            </li>
-            <li>
-              <strong>60% / 40% Revenue Split:</strong> When your auction
-              concludes, 60% of all gross revenue (entry fees + winning bid) is
-              paid to your wallet, with 40% retained by the system.
-            </li>
-            <li>
-              <strong>Admin Review:</strong> Every submitted item is reviewed
-              and verified by an admin before being published to the live
-              catalog.
-            </li>
-            <li>
-              <strong>Anti-Shill Protection:</strong> Sellers cannot participate
-              or bid on their own items.
-            </li>
+            <li>{t("howItWorks.ruleListingFee")}</li>
+            <li>{t("howItWorks.ruleBrandNew")}</li>
+            <li>{t("howItWorks.ruleSplit")}</li>
+            <li>{t("howItWorks.ruleReview")}</li>
+            <li>{t("howItWorks.ruleAntiShill")}</li>
           </ul>
         </div>
 
@@ -202,7 +182,7 @@ export const HowItWorksModal: React.FC<HowItWorksModalProps> = ({
             onClick={onClose}
             className="px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-sm transition-colors shadow-lg shadow-emerald-900/30"
           >
-            Got it, Let's Play!
+            {t("howItWorks.closeButton")}
           </button>
         </div>
       </div>

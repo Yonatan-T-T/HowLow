@@ -13,12 +13,14 @@ import {
   Zap,
 } from "lucide-react";
 import { useUser } from "../context/UserContext";
+import { useLanguage } from "../context/LanguageContext";
 import type { TestProfile } from "../types/auction";
 
 export const Login: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { login, quickLoginAs, testProfiles } = useUser();
+  const { t } = useLanguage();
 
   const [usernameOrEmail, setUsernameOrEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -103,10 +105,10 @@ export const Login: React.FC = () => {
             </div>
             <div>
               <h1 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">
-                Welcome Back
+                {t("auth.loginTitle")}
               </h1>
               <p className="text-xs text-slate-500 dark:text-slate-400">
-                Log in to bid or manage lowest-unique auctions
+                {t("auth.loginSubtitle")}
               </p>
             </div>
           </div>
@@ -129,7 +131,7 @@ export const Login: React.FC = () => {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
-                Username or Email
+                {t("auth.usernameLabel")}
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
@@ -138,7 +140,7 @@ export const Login: React.FC = () => {
                 <input
                   type="text"
                   required
-                  placeholder="e.g. admin1 or bob@example.com"
+                  placeholder={t("auth.usernamePlaceholder")}
                   value={usernameOrEmail}
                   onChange={(e) => setUsernameOrEmail(e.target.value)}
                   className="w-full pl-10 pr-4 py-3 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 text-slate-900 dark:text-slate-100 placeholder-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 transition-all font-medium"
@@ -149,7 +151,7 @@ export const Login: React.FC = () => {
             <div>
               <div className="flex items-center justify-between mb-1.5">
                 <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
-                  Password
+                  {t("auth.passwordLabel")}
                 </label>
               </div>
               <div className="relative">
@@ -159,7 +161,7 @@ export const Login: React.FC = () => {
                 <input
                   type={showPassword ? "text" : "password"}
                   required
-                  placeholder="Enter your password"
+                  placeholder={t("auth.passwordPlaceholder")}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="w-full pl-10 pr-11 py-3 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 text-slate-900 dark:text-slate-100 placeholder-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 transition-all font-medium"
@@ -188,7 +190,7 @@ export const Login: React.FC = () => {
                 <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
               ) : (
                 <>
-                  <span>Sign In</span>
+                  <span>{t("auth.signInBtn")}</span>
                   <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
                 </>
               )}
@@ -197,12 +199,12 @@ export const Login: React.FC = () => {
 
           <div className="mt-8 pt-6 border-t border-slate-200 dark:border-slate-800/80 text-center">
             <p className="text-xs text-slate-600 dark:text-slate-400">
-              Don't have an account yet?{" "}
+              {t("auth.dontHaveAccount")}{" "}
               <Link
                 to="/signup"
                 className="font-bold text-emerald-600 dark:text-emerald-400 hover:underline"
               >
-                Sign Up &amp; get $100.00
+                {t("auth.signUpBtn")} (100 ETB Bonus)
               </Link>
             </p>
           </div>
@@ -214,12 +216,11 @@ export const Login: React.FC = () => {
             <div className="flex items-center gap-2 mb-2">
               <Zap className="w-4 h-4 text-amber-500 dark:text-amber-400" />
               <h2 className="text-sm font-bold uppercase tracking-wider text-slate-900 dark:text-slate-200">
-                1-Click Test Credentials
+                {t("auth.quickProfilesHeader")}
               </h2>
             </div>
             <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">
-              Instant login for evaluator &amp; testing profiles (2 Admins &amp;
-              5 Users).
+              {t("auth.quickProfilesSubtitle")}
             </p>
 
             {/* Filter Pills */}

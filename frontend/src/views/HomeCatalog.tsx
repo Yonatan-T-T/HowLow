@@ -16,10 +16,12 @@ import {
 import type { AuctionItem } from "../types/auction";
 import { api } from "../services/api";
 import { useUser } from "../context/UserContext";
+import { useLanguage } from "../context/LanguageContext";
 import { AuctionCard } from "../components/AuctionCard";
 
 export const HomeCatalog: React.FC = () => {
   const { currentUser } = useUser();
+  const { t } = useLanguage();
   const [auctions, setAuctions] = useState<AuctionItem[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [activeTab, setActiveTab] = useState<
@@ -111,59 +113,56 @@ export const HomeCatalog: React.FC = () => {
           <div className="text-center max-w-3xl mx-auto">
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-semibold mb-6 shadow-sm">
               <Sparkles className="w-3.5 h-3.5" />
-              <span>Lowest Unique Bid Auction Protocol</span>
+              <span>{t("home.heroBadge")}</span>
             </div>
 
             <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black text-white tracking-tight leading-tight">
-              Bid Lowest. Stay Unique.{" "}
+              {t("home.heroTitlePrefix")}{" "}
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400">
-                Win Luxury.
-              </span>
+                {t("home.heroTitleHighlight")}
+              </span>{" "}
+              {t("home.heroTitleSuffix")}
             </h1>
 
             <p className="mt-4 sm:mt-5 text-sm sm:text-base text-slate-300 leading-relaxed max-w-2xl mx-auto">
-              Welcome to{" "}
-              <strong className="text-white font-semibold">Unique Low</strong>.
-              Submit secret blind bids on high-end gadgets and watches. When the
-              auction closes, duplicates are eliminated — and the single lowest
-              unique bid wins!
+              {t("home.heroSubtitle")}
             </p>
 
             {/* Quick Highlights / Stats */}
             <div className="mt-8 grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 max-w-4xl mx-auto">
               <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 backdrop-blur-md">
                 <span className="text-[11px] font-semibold uppercase text-slate-400 block tracking-wider">
-                  Live Auctions
+                  {t("home.statsActive")}
                 </span>
                 <span className="text-2xl font-black font-mono text-emerald-400">
-                  {stats.activeCount} Active
+                  {stats.activeCount}
                 </span>
               </div>
 
               <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 backdrop-blur-md">
                 <span className="text-[11px] font-semibold uppercase text-slate-400 block tracking-wider">
-                  Lowest Win To Date
+                  {t("card.winningBid")}
                 </span>
                 <span className="text-2xl font-black font-mono text-amber-400">
-                  ${stats.lowestWin.toFixed(2)}
+                  {stats.lowestWin.toFixed(2)} ETB
                 </span>
               </div>
 
               <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 backdrop-blur-md">
                 <span className="text-[11px] font-semibold uppercase text-slate-400 block tracking-wider">
-                  Prizes Catalog
+                  {t("card.retailValue")}
                 </span>
                 <span className="text-2xl font-black font-mono text-indigo-400">
-                  ${stats.totalPrizePool.toLocaleString()}
+                  {stats.totalPrizePool.toLocaleString()} ETB
                 </span>
               </div>
 
               <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 backdrop-blur-md">
                 <span className="text-[11px] font-semibold uppercase text-slate-400 block tracking-wider">
-                  Fairness
+                  {t("home.statsFair")}
                 </span>
                 <span className="text-2xl font-black text-cyan-400 flex items-center justify-center gap-1">
-                  <ShieldCheck className="w-5 h-5" /> 100% Blind
+                  <ShieldCheck className="w-5 h-5" /> 100%
                 </span>
               </div>
             </div>
@@ -206,11 +205,11 @@ export const HomeCatalog: React.FC = () => {
           {/* Tabs */}
           <div className="flex items-center gap-1.5 overflow-x-auto pb-2 lg:pb-0 scrollbar-none">
             {[
-              { id: "Active", label: "Active Auctions", icon: Flame },
-              { id: "EndingSoon", label: "Ending Soon", icon: Clock },
-              { id: "Registered", label: "My Registered", icon: ShieldCheck },
-              { id: "Closed", label: "Closed / Winners", icon: Trophy },
-              { id: "All", label: "All Items", icon: Filter },
+              { id: "Active", label: t("home.filterActive"), icon: Flame },
+              { id: "EndingSoon", label: t("card.timeLeft"), icon: Clock },
+              { id: "Registered", label: t("card.registeredBidders"), icon: ShieldCheck },
+              { id: "Closed", label: t("home.filterClosed"), icon: Trophy },
+              { id: "All", label: t("home.filterAll"), icon: Filter },
             ].map((tab) => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;
@@ -237,7 +236,7 @@ export const HomeCatalog: React.FC = () => {
               <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
-                placeholder="Search auctions..."
+                placeholder={t("home.searchPlaceholder")}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-9 pr-3 py-2 rounded-xl bg-slate-900 border border-slate-800 focus:border-emerald-500 text-xs text-white placeholder-slate-500 transition-colors"
@@ -300,12 +299,12 @@ export const HomeCatalog: React.FC = () => {
                 <Search className="w-6 h-6" />
               </div>
               <h3 className="text-lg font-bold text-white">
-                No auctions found
+                {t("home.noAuctionsFound")}
               </h3>
               <p className="text-xs text-slate-400 max-w-sm mx-auto mt-1">
                 {activeTab === "Registered"
                   ? "You haven't registered for any auctions yet with this persona. Click any active auction to register!"
-                  : "We couldn't find any auctions matching your search or filter criteria."}
+                  : t("home.noAuctionsFound")}
               </p>
               <button
                 onClick={() => {
@@ -314,7 +313,7 @@ export const HomeCatalog: React.FC = () => {
                 }}
                 className="mt-4 px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-200 transition-colors"
               >
-                Clear Filters
+                {t("home.resetFilters")}
               </button>
             </div>
           )}
