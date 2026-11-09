@@ -9,12 +9,78 @@ namespace UniqueLow.Api.Controllers;
 public class AdminController : ControllerBase
 {
     private readonly IAuctionService _auctionService;
+    private readonly IAuthService _authService;
     private readonly ILogger<AdminController> _logger;
 
-    public AdminController(IAuctionService auctionService, ILogger<AdminController> logger)
+    public AdminController(IAuctionService auctionService, IAuthService authService, ILogger<AdminController> logger)
     {
         _auctionService = auctionService;
+        _authService = authService;
         _logger = logger;
+    }
+
+    [HttpPost("create-admin")]
+    public async Task<ActionResult<AuthResponseDto>> CreateAdmin([FromBody] RegisterRequestDto dto)
+    {
+        var callerAdminId = GetCurrentUserId();
+        if (!callerAdminId.HasValue || callerAdminId.Value <= 0)
+        {
+            return Unauthorized(new AuthResponseDto
+            {
+                Success = false,
+                Message = "Authentication required. Please log in as an administrator."
+            });
+        }
+
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(new AuthResponseDto
+            {
+                Success = false,
+                Message = string.Join("; ", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage))
+            });
+        }
+
+        var result = await _authService.CreateAdminAsync(dto, callerAdminId.Value);
+        if (!result.Success)
+        {
+            return BadRequest(result);
+        }
+
+        return Ok(result);
+    }
+
+    private int? GetCurrentUserId()
+    {
+        if (Request.Headers.TryGetValue("X-User-Id", out var userIdHeader) &&
+            int.TryParse(userIdHeader, out var userId))
+        {
+            return userId;
+        }
+
+        if (Request.Headers.TryGetValue("Authorization", out var authHeader))
+        {
+            var headerStr = authHeader.ToString();
+            if (headerStr.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+            {
+                var token = headerStr.Substring(7).Trim();
+                try
+                {
+                    var decoded = System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(token));
+                    var parts = decoded.Split(':');
+                    if (parts.Length > 0 && int.TryParse(parts[0], out var tokenUserId))
+                    {
+                        return tokenUserId;
+                    }
+                }
+                catch
+                {
+                    // Invalid token format
+                }
+            }
+        }
+
+        return null;
     }
 
     [HttpPost("items")]

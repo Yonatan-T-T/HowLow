@@ -15,19 +15,27 @@ import {
   Clock,
   Copy,
   Check,
+  Shield,
+  UserPlus,
+  Users,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import type {
   AuctionItem,
   AuctionAnalytics,
   ResolveAuctionResult,
   TopUpRequest,
+  User,
 } from "../types/auction";
 import { api } from "../services/api";
+import { useUser } from "../context/UserContext";
 import { LiveCountdown } from "../components/LiveCountdown";
 
 export const AdminDashboard: React.FC = () => {
+  const { currentUser } = useUser();
   const [activeSection, setActiveSection] = useState<
-    "auctions" | "topups" | "pending_items"
+    "auctions" | "topups" | "pending_items" | "admins"
   >("auctions");
   const [auctions, setAuctions] = useState<AuctionItem[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -37,6 +45,19 @@ export const AdminDashboard: React.FC = () => {
   const [resolutionResult, setResolutionResult] =
     useState<ResolveAuctionResult | null>(null);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
+
+  // Admin Management State
+  const [allUsers, setAllUsers] = useState<User[]>([]);
+  const [isLoadingUsers, setIsLoadingUsers] = useState<boolean>(false);
+  const [newAdminUsername, setNewAdminUsername] = useState<string>("");
+  const [newAdminEmail, setNewAdminEmail] = useState<string>("");
+  const [newAdminPhone, setNewAdminPhone] = useState<string>("");
+  const [newAdminPassword, setNewAdminPassword] = useState<string>("");
+  const [newAdminConfirmPassword, setNewAdminConfirmPassword] = useState<string>("");
+  const [showAdminPassword, setShowAdminPassword] = useState<boolean>(false);
+  const [isRegisteringAdmin, setIsRegisteringAdmin] = useState<boolean>(false);
+  const [adminError, setAdminError] = useState<string | null>(null);
+  const [adminSuccess, setAdminSuccess] = useState<string | null>(null);
 
   // Telebirr Top-Up Requests state
   const [topUpRequests, setTopUpRequests] = useState<TopUpRequest[]>([]);
@@ -110,10 +131,85 @@ export const AdminDashboard: React.FC = () => {
     }
   };
 
+  const fetchUsers = async () => {
+    try {
+      setIsLoadingUsers(true);
+      const data = await api.getUsers();
+      setAllUsers(data);
+    } catch (err) {
+      console.error("Failed to load users:", err);
+    } finally {
+      setIsLoadingUsers(false);
+    }
+  };
+
+  const handleCreateAdmin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setAdminError(null);
+    setAdminSuccess(null);
+
+    const cleanUsername = newAdminUsername.trim();
+    const cleanEmail = newAdminEmail.trim();
+    const cleanPhone = newAdminPhone.trim().replace(/[\s-]/g, "");
+
+    if (cleanUsername.length < 3) {
+      setAdminError("Admin username must be at least 3 characters.");
+      return;
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
+      setAdminError("Please enter a valid email address.");
+      return;
+    }
+    if (!/^(\+251|0)?[79]\d{8}$/.test(cleanPhone)) {
+      setAdminError(
+        "Please enter a valid Ethiopian Telebirr phone number (e.g. 0912345678 or 0712345678).",
+      );
+      return;
+    }
+    if (newAdminPassword.length < 6) {
+      setAdminError("Password must be at least 6 characters.");
+      return;
+    }
+    if (newAdminPassword !== newAdminConfirmPassword) {
+      setAdminError("Passwords do not match.");
+      return;
+    }
+
+    try {
+      setIsRegisteringAdmin(true);
+      const res = await api.createAdmin({
+        username: cleanUsername,
+        email: cleanEmail,
+        phoneNumber: cleanPhone,
+        password: newAdminPassword,
+      });
+
+      if (res.success) {
+        setAdminSuccess(res.message);
+        setNewAdminUsername("");
+        setNewAdminEmail("");
+        setNewAdminPhone("");
+        setNewAdminPassword("");
+        setNewAdminConfirmPassword("");
+        fetchUsers();
+      } else {
+        setAdminError(res.message);
+      }
+    } catch (err: any) {
+      setAdminError(
+        err.response?.data?.message ||
+          "Failed to register administrator account.",
+      );
+    } finally {
+      setIsRegisteringAdmin(false);
+    }
+  };
+
   useEffect(() => {
     fetchAuctions();
     fetchTopUps();
     fetchPendingItems();
+    fetchUsers();
   }, []);
 
   const handleApprovePendingItem = async (id: number) => {
@@ -343,6 +439,18 @@ export const AdminDashboard: React.FC = () => {
               {pendingTopUps.length} Pending
             </span>
           )}
+        </button>
+
+        <button
+          onClick={() => setActiveSection("admins")}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-bold transition-all ${
+            activeSection === "admins"
+              ? "bg-amber-600 text-white shadow-md"
+              : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white bg-slate-100 dark:bg-slate-900/60"
+          }`}
+        >
+          <Shield className="w-4 h-4 text-amber-300" />
+          <span>Admin Staff ({allUsers.filter((u) => u.role === "Admin").length})</span>
         </button>
       </div>
 
@@ -886,7 +994,7 @@ export const AdminDashboard: React.FC = () => {
             </div>
           </div>
         </div>
-      ) : (
+      ) : activeSection === "pending_items" ? (
         /* User Item Approvals Section */
         <div className="mt-8 space-y-6 animate-fade-in">
           {/* KPI Cards */}
@@ -1074,6 +1182,238 @@ export const AdminDashboard: React.FC = () => {
               })}
             </div>
           )}
+        </div>
+      ) : (
+        /* Admin Staff Management Section */
+        <div className="mt-8 space-y-6 animate-fade-in">
+          {/* Header */}
+          <div className="p-6 rounded-3xl bg-gradient-to-r from-amber-950/40 via-slate-900 to-slate-900 border border-amber-500/20 shadow-md">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 shrink-0">
+                  <Shield className="w-6 h-6" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-black text-white">Administrator Management</h2>
+                  <p className="text-xs text-slate-400">
+                    Register and manage staff credentials. Only verified administrators have access to create additional admins.
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="px-3 py-1 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-300 font-bold text-xs">
+                  {allUsers.filter((u) => u.role === "Admin").length} Active Administrators
+                </span>
+                <button
+                  type="button"
+                  onClick={fetchUsers}
+                  disabled={isLoadingUsers}
+                  className="p-2 rounded-xl bg-slate-800 text-slate-300 hover:text-white transition-colors"
+                  title="Refresh admins"
+                >
+                  <RefreshCw className={`w-4 h-4 ${isLoadingUsers ? "animate-spin text-amber-400" : ""}`} />
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Form Column: Register New Administrator */}
+            <div className="lg:col-span-1">
+              <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-sm">
+                <div className="flex items-center gap-2.5 pb-4 border-b border-slate-800 mb-5">
+                  <div className="w-8 h-8 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center">
+                    <UserPlus className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-black text-white">Register New Admin</h3>
+                    <p className="text-[11px] text-slate-400">Grant full platform administrative rights</p>
+                  </div>
+                </div>
+
+                {adminSuccess && (
+                  <div className="mb-4 p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs font-semibold flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                    <span>{adminSuccess}</span>
+                  </div>
+                )}
+
+                {adminError && (
+                  <div className="mb-4 p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs font-semibold flex items-center gap-2">
+                    <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0" />
+                    <span>{adminError}</span>
+                  </div>
+                )}
+
+                <form onSubmit={handleCreateAdmin} className="space-y-4">
+                  <div>
+                    <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">
+                      Username
+                    </label>
+                    <input
+                      type="text"
+                      value={newAdminUsername}
+                      onChange={(e) => setNewAdminUsername(e.target.value)}
+                      required
+                      minLength={3}
+                      placeholder="e.g. admin3"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-800 bg-slate-950 text-white text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-amber-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">
+                      Email Address
+                    </label>
+                    <input
+                      type="email"
+                      value={newAdminEmail}
+                      onChange={(e) => setNewAdminEmail(e.target.value)}
+                      required
+                      placeholder="admin@uniquelow.com"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-800 bg-slate-950 text-white text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-amber-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">
+                      Telebirr Phone Number
+                    </label>
+                    <input
+                      type="tel"
+                      value={newAdminPhone}
+                      onChange={(e) => setNewAdminPhone(e.target.value)}
+                      required
+                      placeholder="0911000003"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-800 bg-slate-950 text-white text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-amber-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">
+                      Admin Password
+                    </label>
+                    <div className="relative">
+                      <input
+                        type={showAdminPassword ? "text" : "password"}
+                        value={newAdminPassword}
+                        onChange={(e) => setNewAdminPassword(e.target.value)}
+                        required
+                        minLength={6}
+                        placeholder="Min 6 characters"
+                        className="w-full pl-3.5 pr-10 py-2.5 rounded-xl border border-slate-800 bg-slate-950 text-white text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-amber-500"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowAdminPassword(!showAdminPassword)}
+                        className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-white"
+                      >
+                        {showAdminPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">
+                      Confirm Password
+                    </label>
+                    <input
+                      type={showAdminPassword ? "text" : "password"}
+                      value={newAdminConfirmPassword}
+                      onChange={(e) => setNewAdminConfirmPassword(e.target.value)}
+                      required
+                      placeholder="Repeat admin password"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-800 bg-slate-950 text-white text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-amber-500"
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={isRegisteringAdmin}
+                    className="w-full mt-2 py-3 px-4 rounded-xl bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-white font-bold text-xs shadow-md shadow-amber-900/30 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                  >
+                    {isRegisteringAdmin ? (
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    ) : (
+                      <Shield className="w-4 h-4" />
+                    )}
+                    <span>{isRegisteringAdmin ? "Creating..." : "Authorize & Register Admin"}</span>
+                  </button>
+                </form>
+              </div>
+            </div>
+
+            {/* List Column: Active Administrators */}
+            <div className="lg:col-span-2">
+              <div className="bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden shadow-sm">
+                <div className="p-5 border-b border-slate-800 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Users className="w-4 h-4 text-amber-400" />
+                    <h3 className="text-sm font-bold text-white">Active System Administrators</h3>
+                  </div>
+                  <span className="text-xs text-slate-500">
+                    {allUsers.filter((u) => u.role === "Admin").length} Accounts
+                  </span>
+                </div>
+
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs">
+                    <thead className="bg-slate-950/60 border-b border-slate-800 text-[10px] uppercase font-bold text-slate-400 tracking-wider">
+                      <tr>
+                        <th className="py-3.5 px-4">Administrator</th>
+                        <th className="py-3.5 px-4">Email</th>
+                        <th className="py-3.5 px-4">Phone Number</th>
+                        <th className="py-3.5 px-4">Balance</th>
+                        <th className="py-3.5 px-4 text-right">Role</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-800/60 font-medium">
+                      {allUsers
+                        .filter((u) => u.role === "Admin")
+                        .map((admin) => {
+                          const isSelf = currentUser && currentUser.id === admin.id;
+                          return (
+                            <tr key={admin.id} className="hover:bg-slate-800/30 transition-colors">
+                              <td className="py-3.5 px-4">
+                                <div className="flex items-center gap-2.5">
+                                  <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-amber-500 to-amber-700 text-white font-black text-xs flex items-center justify-center shrink-0">
+                                    {admin.username.charAt(0).toUpperCase()}
+                                  </div>
+                                  <div>
+                                    <div className="flex items-center gap-1.5">
+                                      <span className="font-bold text-white">{admin.username}</span>
+                                      {isSelf && (
+                                        <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                                          You
+                                        </span>
+                                      )}
+                                    </div>
+                                    <span className="text-[10px] text-slate-500 font-mono">ID #{admin.id}</span>
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="py-3.5 px-4 text-slate-300 font-mono">{admin.email}</td>
+                              <td className="py-3.5 px-4 text-slate-300 font-mono">
+                                {admin.phoneNumber || "—"}
+                              </td>
+                              <td className="py-3.5 px-4 font-mono text-emerald-400 font-bold">
+                                ${admin.balance.toFixed(2)}
+                              </td>
+                              <td className="py-3.5 px-4 text-right">
+                                <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2.5 py-1 rounded-full bg-amber-500/15 text-amber-300 border border-amber-500/30">
+                                  <Shield className="w-3 h-3" />
+                                  <span>Administrator</span>
+                                </span>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       )}
 

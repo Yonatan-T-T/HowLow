@@ -46,10 +46,8 @@ public class AuthService : IAuthService
         // 3. Hash password
         PasswordHasher.CreatePasswordHash(dto.Password, out string hash, out string salt);
 
-        // 4. Create new User
-        var role = string.Equals(dto.Role?.Trim(), "Admin", StringComparison.OrdinalIgnoreCase) 
-            ? "Admin" 
-            : "User";
+        // 4. Create new User - Public registration is strictly for regular users
+        var role = "User";
 
         var cleanPhone = dto.PhoneNumber?.Trim() ?? string.Empty;
 
@@ -84,6 +82,87 @@ public class AuthService : IAuthService
         {
             Success = true,
             Message = "Account successfully registered!",
+            Token = token,
+            User = userDto
+        };
+    }
+
+    public async Task<AuthResponseDto> CreateAdminAsync(RegisterRequestDto dto, int callerAdminId)
+    {
+        // 1. Verify caller is an existing Admin
+        var caller = await _context.Users.FindAsync(callerAdminId);
+        if (caller == null || !string.Equals(caller.Role, "Admin", StringComparison.OrdinalIgnoreCase))
+        {
+            return new AuthResponseDto
+            {
+                Success = false,
+                Message = "Unauthorized: Only existing administrators can register new admins."
+            };
+        }
+
+        var cleanUsername = dto.Username.Trim();
+        var cleanEmail = dto.Email.Trim().ToLowerInvariant();
+
+        // 2. Check existing username
+        var existingUsername = await _context.Users
+            .AnyAsync(u => u.Username.ToLower() == cleanUsername.ToLower());
+        if (existingUsername)
+        {
+            return new AuthResponseDto
+            {
+                Success = false,
+                Message = $"Username '{cleanUsername}' is already taken. Please choose another."
+            };
+        }
+
+        // 3. Check existing email
+        var existingEmail = await _context.Users
+            .AnyAsync(u => u.Email.ToLower() == cleanEmail);
+        if (existingEmail)
+        {
+            return new AuthResponseDto
+            {
+                Success = false,
+                Message = $"An account with email '{cleanEmail}' already exists."
+            };
+        }
+
+        // 4. Hash password
+        PasswordHasher.CreatePasswordHash(dto.Password, out string hash, out string salt);
+
+        var cleanPhone = dto.PhoneNumber?.Trim() ?? string.Empty;
+
+        var newAdmin = new User
+        {
+            Username = cleanUsername,
+            Email = cleanEmail,
+            PhoneNumber = cleanPhone,
+            Balance = 1000.00m,
+            Role = "Admin",
+            PasswordHash = hash,
+            PasswordSalt = salt,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        _context.Users.Add(newAdmin);
+        await _context.SaveChangesAsync();
+
+        var userDto = new UserDto
+        {
+            Id = newAdmin.Id,
+            Username = newAdmin.Username,
+            Email = newAdmin.Email,
+            PhoneNumber = newAdmin.PhoneNumber,
+            Balance = newAdmin.Balance,
+            Role = newAdmin.Role
+        };
+
+        var token = PasswordHasher.GenerateAuthToken(newAdmin.Id, newAdmin.Role, newAdmin.Username);
+
+        return new AuthResponseDto
+        {
+            Success = true,
+            Message = $"Admin account '{newAdmin.Username}' successfully created by {caller.Username}!",
             Token = token,
             User = userDto
         };

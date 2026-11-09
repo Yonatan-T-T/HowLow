@@ -44,4 +44,68 @@ public class UsersController : ControllerBase
 
         return Ok(new { success = true, message, balance = newBalance });
     }
+
+    [HttpPut("profile")]
+    public async Task<ActionResult<UpdateProfileResponseDto>> UpdateProfile([FromBody] UpdateProfileDto dto)
+    {
+        var currentUserId = GetCurrentUserId();
+        if (!currentUserId.HasValue || currentUserId.Value <= 0)
+        {
+            return Unauthorized(new UpdateProfileResponseDto
+            {
+                Success = false,
+                Message = "You must be logged in to update your profile."
+            });
+        }
+
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(new UpdateProfileResponseDto
+            {
+                Success = false,
+                Message = string.Join("; ", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage))
+            });
+        }
+
+        var result = await _userService.UpdateProfileAsync(currentUserId.Value, dto);
+        if (!result.Success)
+        {
+            return BadRequest(result);
+        }
+
+        return Ok(result);
+    }
+
+    private int? GetCurrentUserId()
+    {
+        if (Request.Headers.TryGetValue("X-User-Id", out var userIdHeader) &&
+            int.TryParse(userIdHeader, out var userId))
+        {
+            return userId;
+        }
+
+        if (Request.Headers.TryGetValue("Authorization", out var authHeader))
+        {
+            var headerStr = authHeader.ToString();
+            if (headerStr.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+            {
+                var token = headerStr.Substring(7).Trim();
+                try
+                {
+                    var decoded = System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(token));
+                    var parts = decoded.Split(':');
+                    if (parts.Length > 0 && int.TryParse(parts[0], out var tokenUserId))
+                    {
+                        return tokenUserId;
+                    }
+                }
+                catch
+                {
+                    // Invalid token format
+                }
+            }
+        }
+
+        return null;
+    }
 }

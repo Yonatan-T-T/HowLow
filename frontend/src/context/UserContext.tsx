@@ -84,6 +84,9 @@ interface UserContextType {
     password: string,
     role?: string,
   ) => Promise<{ success: boolean; message: string }>;
+  updateProfile: (
+    payload: import("../types/auction").UpdateProfilePayload,
+  ) => Promise<{ success: boolean; message: string }>;
   logout: () => void;
   switchUser: (userId: number) => void;
   quickLoginAs: (
@@ -233,6 +236,34 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
     localStorage.removeItem("unique_low_token");
   };
 
+  const updateProfile = async (
+    payload: import("../types/auction").UpdateProfilePayload,
+  ): Promise<{ success: boolean; message: string }> => {
+    try {
+      const res = await api.updateProfile(payload);
+      if (res.success && res.user) {
+        setCurrentUser(res.user);
+        localStorage.setItem("unique_low_user", JSON.stringify(res.user));
+        if (res.token) {
+          localStorage.setItem("unique_low_token", res.token);
+        }
+        setUsers((prev) =>
+          prev.map((u) => (u.id === res.user!.id ? res.user! : u)),
+        );
+        return {
+          success: true,
+          message: res.message || "Profile updated successfully!",
+        };
+      }
+      return { success: false, message: res.message || "Update failed." };
+    } catch (err: any) {
+      const errorMsg =
+        err.response?.data?.message ||
+        "Failed to update profile. Please check your information.";
+      return { success: false, message: errorMsg };
+    }
+  };
+
   const switchUser = (userId: number) => {
     const user = users.find((u) => u.id === userId);
     if (user) {
@@ -281,6 +312,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
         isLoading,
         login,
         signup,
+        updateProfile,
         logout,
         switchUser,
         quickLoginAs,

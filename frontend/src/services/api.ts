@@ -8,6 +8,8 @@ import type {
   Bid,
   AuthResponse,
   TestProfile,
+  UpdateProfilePayload,
+  UpdateProfileResponse,
 } from "../types/auction";
 
 const rawBaseUrl = import.meta.env.VITE_API_URL || "http://localhost:5223/api";
@@ -168,6 +170,19 @@ export const api = {
     return res.data;
   },
 
+  createAdmin: async (payload: {
+    username: string;
+    email: string;
+    phoneNumber: string;
+    password: string;
+  }): Promise<AuthResponse> => {
+    const res = await apiClient.post<AuthResponse>(
+      "/admin/create-admin",
+      payload,
+    );
+    return res.data;
+  },
+
   // Users & Wallet
   getUsers: async (): Promise<User[]> => {
     const res = await apiClient.get<User[]>("/users");
@@ -184,6 +199,16 @@ export const api = {
     amount: number,
   ): Promise<{ success: boolean; message: string; balance: number }> => {
     const res = await apiClient.post(`/users/${userId}/deposit`, { amount });
+    return res.data;
+  },
+
+  updateProfile: async (
+    payload: UpdateProfilePayload,
+  ): Promise<UpdateProfileResponse> => {
+    const res = await apiClient.put<UpdateProfileResponse>(
+      "/users/profile",
+      payload,
+    );
     return res.data;
   },
 

@@ -18,3 +18,27 @@ public class WalletDepositDto
     [Range(1.00, 10000.00, ErrorMessage = "Deposit amount must be between $1 and $10,000")]
     public decimal Amount { get; set; }
 }
+
+public class UpdateProfileDto
+{
+    [Required]
+    [MinLength(3, ErrorMessage = "Username must be at least 3 characters")]
+    public string Username { get; set; } = string.Empty;
+
+    [Required]
+    [EmailAddress(ErrorMessage = "Invalid email format")]
+    public string Email { get; set; } = string.Empty;
+
+    public string PhoneNumber { get; set; } = string.Empty;
+
+    public string? CurrentPassword { get; set; }
+    public string? NewPassword { get; set; }
+}
+
+public class UpdateProfileResponseDto
+{
+    public bool Success { get; set; }
+    public string Message { get; set; } = string.Empty;
+    public UserDto? User { get; set; }
+    public string? Token { get; set; }
+}

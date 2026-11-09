@@ -13,7 +13,6 @@ import {
   ArrowRight,
   Gift,
   ShieldCheck,
-  Check,
 } from "lucide-react";
 import { useUser } from "../context/UserContext";
 import { useLanguage } from "../context/LanguageContext";
@@ -28,7 +27,6 @@ export const SignUp: React.FC = () => {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [role, setRole] = useState<"User" | "Admin">("User");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -76,7 +74,7 @@ export const SignUp: React.FC = () => {
         email.trim(),
         cleanPhone,
         password,
-        role,
+        "User",
       );
       if (res.success) {
         setSuccessMsg(res.message);
@@ -273,39 +271,6 @@ export const SignUp: React.FC = () => {
                 Passwords do not match.
               </span>
             )}
-          </div>
-
-          {/* Role selector for easy sandbox / admin testing */}
-          <div>
-            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
-              {t("auth.accountTypeLabel")}
-            </label>
-            <div className="grid grid-cols-2 gap-2">
-              <button
-                type="button"
-                onClick={() => setRole("User")}
-                className={`py-2.5 px-3 rounded-xl border text-xs font-bold flex items-center justify-center gap-2 transition-all ${
-                  role === "User"
-                    ? "bg-emerald-500/15 border-emerald-500 text-emerald-600 dark:text-emerald-400 shadow-sm"
-                    : "border-slate-300 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50"
-                }`}
-              >
-                {role === "User" && <Check className="w-3.5 h-3.5" />}
-                <span>{t("auth.roleUser")}</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setRole("Admin")}
-                className={`py-2.5 px-3 rounded-xl border text-xs font-bold flex items-center justify-center gap-2 transition-all ${
-                  role === "Admin"
-                    ? "bg-amber-500/15 border-amber-500 text-amber-600 dark:text-amber-400 shadow-sm"
-                    : "border-slate-300 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50"
-                }`}
-              >
-                {role === "Admin" && <Check className="w-3.5 h-3.5" />}
-                <span>{t("auth.roleAdmin")}</span>
-              </button>
-            </div>
           </div>
 
           <button

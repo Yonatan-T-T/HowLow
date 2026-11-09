@@ -11,6 +11,7 @@ import { AdminCreateAuction } from "./views/AdminCreateAuction";
 import { UserPostItem } from "./views/UserPostItem";
 import { Login } from "./views/Login";
 import { SignUp } from "./views/SignUp";
+import { Profile } from "./views/Profile";
 import { ShieldCheck } from "lucide-react";
 
 function AppContent() {
@@ -34,6 +35,8 @@ function AppContent() {
             <Route path="/admin/create" element={<AdminCreateAuction />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<SignUp />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/settings" element={<Profile />} />
           </Routes>
         </main>
 

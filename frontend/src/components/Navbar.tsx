@@ -18,6 +18,7 @@ import {
   Zap,
   Tag,
   ShoppingBag,
+  UserCog,
 } from "lucide-react";
 import { useUser } from "../context/UserContext";
 import { useTheme } from "../context/ThemeContext";
@@ -390,6 +391,15 @@ export const Navbar: React.FC = () => {
                             <span>{t("nav.adminPortal")}</span>
                           </Link>
                         )}
+                        <Link
+                          to="/profile"
+                          onClick={() => setIsUserMenuOpen(false)}
+                          className="w-full text-left px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors flex items-center gap-2"
+                        >
+                          <UserCog className="w-3.5 h-3.5 text-blue-500" />
+                          <span>Account Settings</span>
+                        </Link>
+
                         <button
                           onClick={handleSignOut}
                           className="w-full text-left px-3 py-2 rounded-xl text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-500/10 transition-colors flex items-center gap-2"
@@ -484,6 +494,15 @@ export const Navbar: React.FC = () => {
                     <span>Admin Portal</span>
                   </Link>
                 )}
+                <Link
+                  to="/profile"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="block px-3 py-2 rounded-xl text-sm font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-900 flex items-center gap-2"
+                >
+                  <UserCog className="w-4 h-4 text-blue-500" />
+                  <span>Account Settings</span>
+                </Link>
+
                 <button
                   onClick={handleSignOut}
                   className="w-full text-left px-3 py-2 rounded-xl text-sm font-semibold text-rose-600 dark:text-rose-400 hover:bg-slate-100 dark:hover:bg-slate-900 flex items-center gap-2"

@@ -7,4 +7,5 @@ public interface IUserService
     Task<IEnumerable<UserDto>> GetAllUsersAsync();
     Task<UserDto?> GetUserByIdAsync(int id);
     Task<(bool Success, string Message, decimal NewBalance)> DepositFundsAsync(int userId, decimal amount);
+    Task<UpdateProfileResponseDto> UpdateProfileAsync(int userId, UpdateProfileDto dto);
 }

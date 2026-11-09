@@ -172,3 +172,18 @@ export interface ResolveAuctionResult {
   duplicateBidsCount: number;
   message: string;
 }
+
+export interface UpdateProfilePayload {
+  username: string;
+  email: string;
+  phoneNumber: string;
+  currentPassword?: string;
+  newPassword?: string;
+}
+
+export interface UpdateProfileResponse {
+  success: boolean;
+  message: string;
+  user?: User;
+  token?: string;
+}

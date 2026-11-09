@@ -50,4 +50,11 @@ public static class PasswordHasher
             return false;
         }
     }
+
+    public static string GenerateAuthToken(int userId, string role, string username)
+    {
+        var timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        var raw = $"{userId}:{role}:{username}:{timestamp}:{Guid.NewGuid():N}";
+        return Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(raw));
+    }
 }
