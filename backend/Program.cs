@@ -9,13 +9,35 @@ var builder = WebApplication.CreateBuilder(args);
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") 
     ?? "Data Source=uniquelow.db";
 
+// Helper to normalize postgres:// or postgresql:// URI into standard Npgsql connection string
+static string NormalizePostgresConnectionString(string connStr)
+{
+    if (connStr.StartsWith("postgres://", StringComparison.OrdinalIgnoreCase) ||
+        connStr.StartsWith("postgresql://", StringComparison.OrdinalIgnoreCase))
+    {
+        var uri = new Uri(connStr);
+        var userInfo = uri.UserInfo.Split(':');
+        var user = userInfo.Length > 0 ? Uri.UnescapeDataString(userInfo[0]) : "";
+        var pass = userInfo.Length > 1 ? Uri.UnescapeDataString(userInfo[1]) : "";
+        var db = uri.AbsolutePath.TrimStart('/');
+        var port = uri.Port > 0 ? uri.Port : 5432;
+        return $"Host={uri.Host};Port={port};Database={db};Username={user};Password={pass};SSL Mode=Require;Trust Server Certificate=true;";
+    }
+    return connStr;
+}
+
+bool isPostgres = connectionString.StartsWith("Host=", StringComparison.OrdinalIgnoreCase) ||
+                  connectionString.StartsWith("Server=", StringComparison.OrdinalIgnoreCase) ||
+                  connectionString.StartsWith("postgres://", StringComparison.OrdinalIgnoreCase) ||
+                  connectionString.StartsWith("postgresql://", StringComparison.OrdinalIgnoreCase) ||
+                  connectionString.Contains("neon.tech", StringComparison.OrdinalIgnoreCase);
+
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
-    if (connectionString.StartsWith("Host=", StringComparison.OrdinalIgnoreCase) || 
-        connectionString.StartsWith("Server=", StringComparison.OrdinalIgnoreCase) ||
-        connectionString.StartsWith("postgres://", StringComparison.OrdinalIgnoreCase))
+    if (isPostgres)
     {
-        options.UseNpgsql(connectionString);
+        var formattedConnStr = NormalizePostgresConnectionString(connectionString);
+        options.UseNpgsql(formattedConnStr);
     }
     else
     {
