@@ -11,54 +11,57 @@ public static class DbInitializer
         await context.Database.EnsureCreatedAsync();
 
         // Ensure schema compatibility for SQLite (add PhoneNumber column and TopUpRequests table if missing)
-        try
+        if (context.Database.IsSqlite())
         {
-            await context.Database.ExecuteSqlRawAsync("ALTER TABLE Users ADD COLUMN PhoneNumber TEXT DEFAULT '' NOT NULL;");
-        }
-        catch { /* Column already exists */ }
-
-        try
-        {
-            var columnsToAdd = new[]
+            try
             {
-                "ALTER TABLE AuctionItems ADD COLUMN SellerUserId INTEGER NULL;",
-                "ALTER TABLE AuctionItems ADD COLUMN PostingFeePaid TEXT DEFAULT '0' NOT NULL;",
-                "ALTER TABLE AuctionItems ADD COLUMN ConditionIsBrandNew INTEGER DEFAULT 1 NOT NULL;",
-                "ALTER TABLE AuctionItems ADD COLUMN AuthenticityDeclaration TEXT NULL;",
-                "ALTER TABLE AuctionItems ADD COLUMN ApprovedAt TEXT NULL;",
-                "ALTER TABLE AuctionItems ADD COLUMN ApprovedBy TEXT NULL;",
-                "ALTER TABLE AuctionItems ADD COLUMN RejectionReason TEXT NULL;",
-                "ALTER TABLE AuctionItems ADD COLUMN FeeForfeited INTEGER DEFAULT 0 NOT NULL;",
-                "ALTER TABLE AuctionItems ADD COLUMN SellerPayoutAmount TEXT NULL;",
-                "ALTER TABLE AuctionItems ADD COLUMN SystemProfitAmount TEXT NULL;"
-            };
-            foreach (var sql in columnsToAdd)
-            {
-                try { await context.Database.ExecuteSqlRawAsync(sql); } catch { /* Already exists */ }
+                await context.Database.ExecuteSqlRawAsync("ALTER TABLE Users ADD COLUMN PhoneNumber TEXT DEFAULT '' NOT NULL;");
             }
-        }
-        catch { /* Table alteration error ignored */ }
+            catch { /* Column already exists */ }
 
-        try
-        {
-            await context.Database.ExecuteSqlRawAsync(@"
-                CREATE TABLE IF NOT EXISTS TopUpRequests (
-                    Id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    UserId INTEGER NOT NULL,
-                    SenderPhoneNumber TEXT NOT NULL,
-                    ReceiverPhoneNumber TEXT NOT NULL,
-                    ReceiverName TEXT NOT NULL,
-                    Amount TEXT NOT NULL,
-                    TransactionNumber TEXT NOT NULL,
-                    Status TEXT NOT NULL,
-                    CreatedAt TEXT NOT NULL,
-                    ReviewedAt TEXT NULL,
-                    ReviewedBy TEXT NULL,
-                    AdminNotes TEXT NULL,
-                    FOREIGN KEY(UserId) REFERENCES Users(Id) ON DELETE CASCADE
-                );");
+            try
+            {
+                var columnsToAdd = new[]
+                {
+                    "ALTER TABLE AuctionItems ADD COLUMN SellerUserId INTEGER NULL;",
+                    "ALTER TABLE AuctionItems ADD COLUMN PostingFeePaid TEXT DEFAULT '0' NOT NULL;",
+                    "ALTER TABLE AuctionItems ADD COLUMN ConditionIsBrandNew INTEGER DEFAULT 1 NOT NULL;",
+                    "ALTER TABLE AuctionItems ADD COLUMN AuthenticityDeclaration TEXT NULL;",
+                    "ALTER TABLE AuctionItems ADD COLUMN ApprovedAt TEXT NULL;",
+                    "ALTER TABLE AuctionItems ADD COLUMN ApprovedBy TEXT NULL;",
+                    "ALTER TABLE AuctionItems ADD COLUMN RejectionReason TEXT NULL;",
+                    "ALTER TABLE AuctionItems ADD COLUMN FeeForfeited INTEGER DEFAULT 0 NOT NULL;",
+                    "ALTER TABLE AuctionItems ADD COLUMN SellerPayoutAmount TEXT NULL;",
+                    "ALTER TABLE AuctionItems ADD COLUMN SystemProfitAmount TEXT NULL;"
+                };
+                foreach (var sql in columnsToAdd)
+                {
+                    try { await context.Database.ExecuteSqlRawAsync(sql); } catch { /* Already exists */ }
+                }
+            }
+            catch { /* Table alteration error ignored */ }
+
+            try
+            {
+                await context.Database.ExecuteSqlRawAsync(@"
+                    CREATE TABLE IF NOT EXISTS TopUpRequests (
+                        Id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        UserId INTEGER NOT NULL,
+                        SenderPhoneNumber TEXT NOT NULL,
+                        ReceiverPhoneNumber TEXT NOT NULL,
+                        ReceiverName TEXT NOT NULL,
+                        Amount TEXT NOT NULL,
+                        TransactionNumber TEXT NOT NULL,
+                        Status TEXT NOT NULL,
+                        CreatedAt TEXT NOT NULL,
+                        ReviewedAt TEXT NULL,
+                        ReviewedBy TEXT NULL,
+                        AdminNotes TEXT NULL,
+                        FOREIGN KEY(UserId) REFERENCES Users(Id) ON DELETE CASCADE
+                    );");
+            }
+            catch { /* Table already exists */ }
         }
-        catch { /* Table already exists */ }
 
         // Check if database needs seeding or updating with passwords & phone numbers
         if (await context.Users.AnyAsync())
