@@ -386,7 +386,9 @@ export const UserPostItem: React.FC = () => {
           }`}
         >
           <ShoppingBag className="w-4 h-4" />
-          <span>{t("postItem.tabMyItems")} ({myItems.length})</span>
+          <span>
+            {t("postItem.tabMyItems")} ({myItems.length})
+          </span>
         </button>
       </div>
 

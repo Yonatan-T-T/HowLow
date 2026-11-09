@@ -5,12 +5,23 @@ using UniqueLow.Api.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// 1. Add DbContext with SQLite
+// 1. Add DbContext (PostgreSQL in production/cloud, SQLite fallback locally)
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") 
     ?? "Data Source=uniquelow.db";
 
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlite(connectionString));
+{
+    if (connectionString.StartsWith("Host=", StringComparison.OrdinalIgnoreCase) || 
+        connectionString.StartsWith("Server=", StringComparison.OrdinalIgnoreCase) ||
+        connectionString.StartsWith("postgres://", StringComparison.OrdinalIgnoreCase))
+    {
+        options.UseNpgsql(connectionString);
+    }
+    else
+    {
+        options.UseSqlite(connectionString);
+    }
+});
 
 // 2. Register application services
 builder.Services.AddScoped<IAuctionService, AuctionService>();
