@@ -14,12 +14,17 @@ public class AppDbContext : DbContext
     public DbSet<AuctionRegistration> AuctionRegistrations => Set<AuctionRegistration>();
     public DbSet<Bid> Bids => Set<Bid>();
     public DbSet<TopUpRequest> TopUpRequests => Set<TopUpRequest>();
+    public DbSet<PaymentTransaction> PaymentTransactions => Set<PaymentTransaction>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
 
         // Prevent duplicate registration by the same user on the same auction
+        modelBuilder.Entity<PaymentTransaction>()
+            .HasIndex(p => p.TxRef)
+            .IsUnique();
+
         modelBuilder.Entity<AuctionRegistration>()
             .HasIndex(r => new { r.AuctionItemId, r.UserId })
             .IsUnique();

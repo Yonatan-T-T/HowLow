@@ -46,9 +46,11 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 });
 
 // 2. Register application services
+builder.Services.AddHttpClient();
 builder.Services.AddScoped<IAuctionService, AuctionService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IChapaService, ChapaService>();
 
 // 3. Controllers and JSON serialization
 builder.Services.AddControllers()

@@ -12,6 +12,7 @@ import { UserPostItem } from "./views/UserPostItem";
 import { Login } from "./views/Login";
 import { SignUp } from "./views/SignUp";
 import { Profile } from "./views/Profile";
+import { PaymentCallback } from "./views/PaymentCallback";
 import { ShieldCheck } from "lucide-react";
 
 function AppContent() {
@@ -37,6 +38,8 @@ function AppContent() {
             <Route path="/signup" element={<SignUp />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/settings" element={<Profile />} />
+            <Route path="/payment-callback" element={<PaymentCallback />} />
+            <Route path="/payment/callback" element={<PaymentCallback />} />
           </Routes>
         </main>
 

@@ -305,4 +305,24 @@ export const api = {
     const res = await apiClient.post(`/topup/admin/${id}/reject`, { reason });
     return res.data;
   },
+
+  // Chapa Payment Gateway
+  initializeChapaPayment: async (
+    amount: number,
+    returnUrl?: string,
+  ): Promise<import("../types/auction").ChapaInitResponse> => {
+    const res = await apiClient.post<
+      import("../types/auction").ChapaInitResponse
+    >("/payment/chapa/initialize", { amount, returnUrl });
+    return res.data;
+  },
+
+  verifyChapaPayment: async (
+    txRef: string,
+  ): Promise<import("../types/auction").ChapaVerifyResponse> => {
+    const res = await apiClient.get<
+      import("../types/auction").ChapaVerifyResponse
+    >(`/payment/chapa/verify/${encodeURIComponent(txRef)}`);
+    return res.data;
+  },
 };

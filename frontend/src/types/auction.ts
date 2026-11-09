@@ -187,3 +187,19 @@ export interface UpdateProfileResponse {
   user?: User;
   token?: string;
 }
+
+export interface ChapaInitResponse {
+  success: boolean;
+  message: string;
+  checkoutUrl?: string;
+  txRef?: string;
+}
+
+export interface ChapaVerifyResponse {
+  success: boolean;
+  message: string;
+  amount: number;
+  newBalance: number;
+  txRef?: string;
+  status?: string;
+}
