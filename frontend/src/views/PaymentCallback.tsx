@@ -46,6 +46,13 @@ export const PaymentCallback: React.FC = () => {
           setMessage(res.message || "Payment verified and wallet credited!");
           setAmountCredited(res.amount);
           localStorage.removeItem("last_chapa_tx_ref");
+          localStorage.setItem("chapa_payment_success", Date.now().toString());
+          try {
+            window.opener?.postMessage(
+              { type: "CHAPA_PAYMENT_SUCCESS", txRef: reference },
+              "*",
+            );
+          } catch {}
           // Refresh user session so updated balance is reflected globally
           await refreshUser();
         } else {
@@ -128,13 +135,20 @@ export const PaymentCallback: React.FC = () => {
               )}
             </div>
 
-            <div className="pt-2">
+            <div className="pt-2 flex flex-col sm:flex-row gap-2">
+              <button
+                type="button"
+                onClick={() => window.close()}
+                className="flex-1 py-3 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold text-xs transition-all cursor-pointer"
+              >
+                Close This Tab
+              </button>
               <Link
                 to="/"
-                className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white font-bold text-sm shadow-md shadow-emerald-500/20 transition-all flex items-center justify-center gap-2"
+                className="flex-1 py-3 px-4 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white font-bold text-xs shadow-md shadow-emerald-500/20 transition-all flex items-center justify-center gap-1.5"
               >
-                <span>Browse Live Auctions</span>
-                <ArrowRight className="w-4 h-4" />
+                <span>Browse Auctions</span>
+                <ArrowRight className="w-3.5 h-3.5" />
               </Link>
             </div>
           </div>

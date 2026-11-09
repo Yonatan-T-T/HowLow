@@ -11,6 +11,8 @@ import {
   Zap,
   CreditCard,
   ShieldCheck,
+  CheckCircle2,
+  ExternalLink,
 } from "lucide-react";
 import { useUser } from "../context/UserContext";
 import { useLanguage } from "../context/LanguageContext";
@@ -30,6 +32,17 @@ export const WalletTopUpModal: React.FC = () => {
   const [chapaError, setChapaError] = useState<string | null>(null);
   const [isSyncingChapa, setIsSyncingChapa] = useState<boolean>(false);
   const [chapaSyncMsg, setChapaSyncMsg] = useState<string | null>(null);
+  const [awaitingPayment, setAwaitingPayment] = useState<{
+    txRef: string;
+    amount: number;
+    checkoutUrl: string;
+  } | null>(null);
+  const [isVerifyingAwaiting, setIsVerifyingAwaiting] = useState<boolean>(false);
+  const [paymentSuccessData, setPaymentSuccessData] = useState<{
+    amount: number;
+    newBalance: number;
+    txRef: string;
+  } | null>(null);
 
   // Form states matching user's Telebirr modal reference
   const [amount, setAmount] = useState<string>("50.00");
@@ -101,6 +114,65 @@ export const WalletTopUpModal: React.FC = () => {
     }
   };
 
+  // Auto-poll Chapa transaction status when payment is active in new tab
+  useEffect(() => {
+    if (!awaitingPayment) return;
+
+    let isCancelled = false;
+    const interval = setInterval(async () => {
+      try {
+        const res = await api.verifyChapaPayment(awaitingPayment.txRef);
+        if (isCancelled) return;
+        if (
+          res.success &&
+          (res.status?.toUpperCase() === "SUCCESS" ||
+            res.status?.toUpperCase() === "PAID" ||
+            res.status?.toUpperCase() === "COMPLETED")
+        ) {
+          clearInterval(interval);
+          setPaymentSuccessData({
+            amount: res.amount,
+            newBalance: res.newBalance,
+            txRef: awaitingPayment.txRef,
+          });
+          setAwaitingPayment(null);
+          localStorage.removeItem("last_chapa_tx_ref");
+          await refreshUser();
+        }
+      } catch {
+        // Still pending or network waiting, continue polling
+      }
+    }, 3500);
+
+    return () => {
+      isCancelled = true;
+      clearInterval(interval);
+    };
+  }, [awaitingPayment, refreshUser]);
+
+  // Listen for storage events in case the callback completes in another tab
+  useEffect(() => {
+    const handleStorage = (e: StorageEvent) => {
+      if (e.key === "chapa_payment_success") {
+        refreshUser();
+        if (awaitingPayment) {
+          api.syncChapaPayments().then((res) => {
+            if (res.creditedCount > 0) {
+              setPaymentSuccessData({
+                amount: awaitingPayment.amount,
+                newBalance: res.currentBalance,
+                txRef: awaitingPayment.txRef,
+              });
+              setAwaitingPayment(null);
+            }
+          });
+        }
+      }
+    };
+    window.addEventListener("storage", handleStorage);
+    return () => window.removeEventListener("storage", handleStorage);
+  }, [awaitingPayment, refreshUser]);
+
   if (!isTopUpOpen || !currentUser || currentUser.role === "Admin") return null;
 
   const handleCopy = (text: string, fieldName: string) => {
@@ -127,6 +199,19 @@ export const WalletTopUpModal: React.FC = () => {
       return;
     }
 
+    // Pre-open new tab synchronously on click to prevent popup blockers
+    let paymentTab: Window | null = null;
+    try {
+      paymentTab = window.open("", "_blank");
+      if (paymentTab) {
+        paymentTab.document.write(
+          "<!DOCTYPE html><html><head><title>Connecting to Chapa...</title><style>body{font-family:system-ui,-apple-system,sans-serif;background:#0f172a;color:#fff;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;} .box{text-align:center;padding:32px;background:#1e293b;border-radius:24px;border:1px solid #334155;} .loader{width:36px;height:36px;border:3px solid rgba(16,185,129,0.2);border-top-color:#10b981;border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 16px;} @keyframes spin{to{transform:rotate(360deg);}}</style></head><body><div class='box'><div class='loader'></div><h3 style='margin:0 0 6px 0;'>Opening Chapa Checkout</h3><p style='color:#94a3b8;font-size:12px;margin:0;'>Please wait while we connect securely...</p></div></body></html>",
+        );
+      }
+    } catch {
+      // Ignore if browser restricts opening blank window
+    }
+
     try {
       setIsChapaLoading(true);
       setChapaError(null);
@@ -136,11 +221,25 @@ export const WalletTopUpModal: React.FC = () => {
         if (res.txRef) {
           localStorage.setItem("last_chapa_tx_ref", res.txRef);
         }
-        window.location.href = res.checkoutUrl;
+
+        if (paymentTab && !paymentTab.closed) {
+          paymentTab.location.href = res.checkoutUrl;
+        } else {
+          window.open(res.checkoutUrl, "_blank");
+        }
+
+        // Set active awaiting state in this tab so it polls automatically
+        setAwaitingPayment({
+          txRef: res.txRef || `tx_${Date.now()}`,
+          amount: parsed,
+          checkoutUrl: res.checkoutUrl,
+        });
       } else {
+        if (paymentTab && !paymentTab.closed) paymentTab.close();
         setChapaError(res.message || "Failed to initialize payment with Chapa.");
       }
     } catch (err: any) {
+      if (paymentTab && !paymentTab.closed) paymentTab.close();
       setChapaError(
         err.response?.data?.message ||
           "Payment initiation failed. Please check Chapa API configuration.",
@@ -460,129 +559,291 @@ export const WalletTopUpModal: React.FC = () => {
             )}
           </div>
         ) : activeTab === "chapa" ? (
-          /* Chapa Instant Automatic Checkout View */
-          <div className="space-y-4 animate-fade-in py-1">
-            <div className="p-3.5 rounded-2xl bg-gradient-to-r from-emerald-500/10 via-teal-500/10 to-transparent border border-emerald-500/20 text-xs">
-              <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 font-bold mb-1">
-                <Zap className="w-4 h-4 text-emerald-500" />
-                <span>Instant Automatic Deposit</span>
+          paymentSuccessData ? (
+            /* Chapa Payment Verified Success State */
+            <div className="space-y-4 animate-fade-in py-3 text-center">
+              <div className="w-16 h-16 rounded-3xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-500 flex items-center justify-center mx-auto shadow-lg shadow-emerald-500/20">
+                <CheckCircle2 className="w-10 h-10" />
               </div>
-              <p className="text-slate-600 dark:text-slate-400 text-[11px] leading-relaxed">
-                Pay securely via <strong>Telebirr, CBEBirr, AwashBirr, or Debit Cards</strong> through Chapa. Your wallet balance is credited immediately upon completing checkout!
-              </p>
-            </div>
-
-            {chapaError && (
-              <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-600 dark:text-rose-400 text-xs flex items-center gap-2">
-                <AlertCircle className="w-4 h-4 shrink-0" />
-                <span>{chapaError}</span>
-              </div>
-            )}
-
-            <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
-                Top-Up Amount (ETB)
-              </label>
-              <div className="relative">
-                <input
-                  type="number"
-                  min="5"
-                  step="1"
-                  value={chapaAmount}
-                  onChange={(e) => setChapaAmount(e.target.value)}
-                  placeholder="100.00"
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white font-mono font-bold text-base focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                />
-                <span className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-xs font-bold text-slate-400">
-                  ETB
+              <div>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 block mb-1">
+                  Automatic Deposit Confirmed
                 </span>
+                <h3 className="text-xl font-black text-slate-900 dark:text-white">
+                  Payment Verified!
+                </h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                  Your wallet has been credited successfully.
+                </p>
               </div>
 
-              {/* Quick Presets */}
-              <div className="grid grid-cols-5 gap-1.5 mt-2">
-                {chapaPresets.map((amt) => (
-                  <button
-                    key={amt}
-                    type="button"
-                    onClick={() => setChapaAmount(amt.toString())}
-                    className={`py-1.5 px-2 rounded-lg text-xs font-mono font-bold transition-all border ${
-                      parseFloat(chapaAmount) === amt
-                        ? "bg-emerald-500 text-white border-emerald-500 shadow-sm"
-                        : "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-emerald-500/50"
-                    }`}
-                  >
-                    {amt}
-                  </button>
-                ))}
+              <div className="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 text-center space-y-1.5">
+                <div className="text-2xl font-black font-mono text-emerald-600 dark:text-emerald-400">
+                  +{paymentSuccessData.amount.toFixed(2)} ETB
+                </div>
+                <div className="text-xs text-slate-500 dark:text-slate-400">
+                  New Balance:{" "}
+                  <strong className="font-mono text-slate-900 dark:text-white">
+                    {paymentSuccessData.newBalance.toFixed(2)} ETB
+                  </strong>
+                </div>
               </div>
-            </div>
 
-            {/* Payment channels */}
-            <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800/80">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-2">
-                Supported Channels:
-              </span>
-              <div className="flex flex-wrap items-center gap-1.5 text-xs font-semibold">
-                <span className="px-2 py-1 rounded-lg bg-[#008FD5]/15 text-[#008FD5] border border-[#008FD5]/30">
-                  Telebirr
-                </span>
-                <span className="px-2 py-1 rounded-lg bg-purple-500/15 text-purple-600 dark:text-purple-300 border border-purple-500/30">
-                  CBEBirr
-                </span>
-                <span className="px-2 py-1 rounded-lg bg-blue-500/15 text-blue-600 dark:text-blue-300 border border-blue-500/30">
-                  AwashBirr
-                </span>
-                <span className="px-2 py-1 rounded-lg bg-emerald-500/15 text-emerald-600 dark:text-emerald-300 border border-emerald-500/30">
-                  Debit Cards
-                </span>
-              </div>
-            </div>
-
-            <button
-              type="button"
-              onClick={handleChapaPay}
-              disabled={isChapaLoading || !parseFloat(chapaAmount) || parseFloat(chapaAmount) < 5}
-              className="w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white font-bold text-sm shadow-md shadow-emerald-500/20 transition-all flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
-            >
-              {isChapaLoading ? (
-                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-              ) : (
-                <CreditCard className="w-4 h-4" />
-              )}
-              <span>
-                {isChapaLoading
-                  ? "Connecting to Chapa..."
-                  : `Pay ${parseFloat(chapaAmount) || 0} ETB with Chapa`}
-              </span>
-            </button>
-
-            {chapaSyncMsg && (
-              <div className="p-3 rounded-xl bg-slate-100 dark:bg-slate-800 text-xs text-slate-700 dark:text-slate-300 flex items-center gap-2">
-                <Check className="w-4 h-4 text-emerald-500 shrink-0" />
-                <span>{chapaSyncMsg}</span>
-              </div>
-            )}
-
-            <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex items-center justify-between text-xs">
-              <div className="text-[11px] text-slate-500">
-                Already paid on Chapa?
-              </div>
               <button
                 type="button"
-                onClick={handleSyncChapa}
-                disabled={isSyncingChapa}
-                className="px-3 py-1.5 rounded-lg bg-emerald-600/10 text-emerald-600 dark:text-emerald-400 font-bold hover:bg-emerald-600/20 transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                onClick={() => {
+                  setPaymentSuccessData(null);
+                  closeTopUp();
+                }}
+                className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white font-bold text-sm shadow-md shadow-emerald-500/20 transition-all cursor-pointer"
               >
-                <RefreshCw className={`w-3.5 h-3.5 ${isSyncingChapa ? "animate-spin" : ""}`} />
-                <span>{isSyncingChapa ? "Checking..." : "Sync Balance Now"}</span>
+                Done
               </button>
             </div>
+          ) : awaitingPayment ? (
+            /* Active Waiting State while user completes payment in the new tab */
+            <div className="space-y-4 animate-fade-in py-1">
+              <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-800 dark:text-emerald-300">
+                <div className="flex items-start gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-emerald-500/20 text-emerald-500 flex items-center justify-center shrink-0 mt-0.5 animate-pulse">
+                    <RefreshCw className="w-5 h-5 animate-spin" />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-sm text-slate-900 dark:text-white">
+                      Checkout Opened in a New Tab
+                    </h4>
+                    <p className="text-xs mt-1 text-slate-600 dark:text-slate-400 leading-relaxed">
+                      Complete your <strong>{awaitingPayment.amount.toFixed(2)} ETB</strong> test payment on Chapa in the other tab.
+                    </p>
+                  </div>
+                </div>
+              </div>
 
-            <div className="text-center flex items-center justify-center gap-1 text-[11px] text-slate-400">
-              <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
-              <span>Chapa Test Mode &bull; 256-bit Encrypted Checkout</span>
+              <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-2.5 text-xs">
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-500">Amount:</span>
+                  <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400 text-sm">
+                    {awaitingPayment.amount.toFixed(2)} ETB
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-500">Status:</span>
+                  <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-amber-500/20 text-amber-600 dark:text-amber-400 font-bold uppercase text-[10px] border border-amber-500/30 animate-pulse">
+                    <Clock className="w-3 h-3" />
+                    Listening for payment...
+                  </span>
+                </div>
+                <p className="text-[11px] text-slate-500 pt-2 border-t border-slate-200 dark:border-slate-800/80 leading-relaxed">
+                  You don't need to navigate back. As soon as you authorize the payment on Chapa, this screen will automatically detect it and credit your account!
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2 pt-1">
+                <button
+                  type="button"
+                  onClick={async () => {
+                    setIsVerifyingAwaiting(true);
+                    setChapaSyncMsg(null);
+                    try {
+                      const res = await api.verifyChapaPayment(awaitingPayment.txRef);
+                      if (
+                        res.success &&
+                        (res.status?.toUpperCase() === "SUCCESS" ||
+                          res.status?.toUpperCase() === "PAID" ||
+                          res.status?.toUpperCase() === "COMPLETED")
+                      ) {
+                        setPaymentSuccessData({
+                          amount: res.amount,
+                          newBalance: res.newBalance,
+                          txRef: awaitingPayment.txRef,
+                        });
+                        setAwaitingPayment(null);
+                        localStorage.removeItem("last_chapa_tx_ref");
+                        await refreshUser();
+                      } else {
+                        setChapaSyncMsg(
+                          res.message || "Payment not recorded yet. Please complete checkout on Chapa.",
+                        );
+                      }
+                    } catch (e: any) {
+                      setChapaSyncMsg(
+                        e.response?.data?.message || "Payment not completed yet.",
+                      );
+                    } finally {
+                      setIsVerifyingAwaiting(false);
+                    }
+                  }}
+                  disabled={isVerifyingAwaiting}
+                  className="flex-1 py-3 px-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white font-bold text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50 shadow-sm"
+                >
+                  <RefreshCw
+                    className={`w-3.5 h-3.5 ${isVerifyingAwaiting ? "animate-spin" : ""}`}
+                  />
+                  <span>
+                    {isVerifyingAwaiting
+                      ? "Verifying..."
+                      : "I've Paid — Check Status"}
+                  </span>
+                </button>
+
+                <a
+                  href={awaitingPayment.checkoutUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="py-3 px-3.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold text-xs transition-all flex items-center justify-center gap-1.5"
+                  title="Re-open Chapa Tab"
+                >
+                  <ExternalLink className="w-3.5 h-3.5" />
+                  <span>Re-open</span>
+                </a>
+              </div>
+
+              {chapaSyncMsg && (
+                <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-[11px] text-amber-700 dark:text-amber-300 flex items-center gap-2">
+                  <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                  <span>{chapaSyncMsg}</span>
+                </div>
+              )}
+
+              <div className="text-center pt-1">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAwaitingPayment(null);
+                    setChapaSyncMsg(null);
+                  }}
+                  className="text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 underline cursor-pointer"
+                >
+                  Cancel and change amount
+                </button>
+              </div>
             </div>
-          </div>
+          ) : (
+            /* Chapa Instant Automatic Checkout Setup View */
+            <div className="space-y-4 animate-fade-in py-1">
+              <div className="p-3.5 rounded-2xl bg-gradient-to-r from-emerald-500/10 via-teal-500/10 to-transparent border border-emerald-500/20 text-xs">
+                <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 font-bold mb-1">
+                  <Zap className="w-4 h-4 text-emerald-500" />
+                  <span>Instant Automatic Deposit</span>
+                </div>
+                <p className="text-slate-600 dark:text-slate-400 text-[11px] leading-relaxed">
+                  Pay securely via <strong>Telebirr, CBEBirr, AwashBirr, or Debit Cards</strong>. Checkout opens in a <strong>new tab</strong> so you never lose your page.
+                </p>
+              </div>
+
+              {chapaError && (
+                <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-600 dark:text-rose-400 text-xs flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 shrink-0" />
+                  <span>{chapaError}</span>
+                </div>
+              )}
+
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
+                  Top-Up Amount (ETB)
+                </label>
+                <div className="relative">
+                  <input
+                    type="number"
+                    min="5"
+                    step="1"
+                    value={chapaAmount}
+                    onChange={(e) => setChapaAmount(e.target.value)}
+                    placeholder="100.00"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white font-mono font-bold text-base focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  />
+                  <span className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-xs font-bold text-slate-400">
+                    ETB
+                  </span>
+                </div>
+
+                {/* Quick Presets */}
+                <div className="grid grid-cols-5 gap-1.5 mt-2">
+                  {chapaPresets.map((amt) => (
+                    <button
+                      key={amt}
+                      type="button"
+                      onClick={() => setChapaAmount(amt.toString())}
+                      className={`py-1.5 px-2 rounded-lg text-xs font-mono font-bold transition-all border ${
+                        parseFloat(chapaAmount) === amt
+                          ? "bg-emerald-500 text-white border-emerald-500 shadow-sm"
+                          : "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-emerald-500/50"
+                      }`}
+                    >
+                      {amt}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Payment channels */}
+              <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800/80">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-2">
+                  Supported Channels:
+                </span>
+                <div className="flex flex-wrap items-center gap-1.5 text-xs font-semibold">
+                  <span className="px-2 py-1 rounded-lg bg-[#008FD5]/15 text-[#008FD5] border border-[#008FD5]/30">
+                    Telebirr
+                  </span>
+                  <span className="px-2 py-1 rounded-lg bg-purple-500/15 text-purple-600 dark:text-purple-300 border border-purple-500/30">
+                    CBEBirr
+                  </span>
+                  <span className="px-2 py-1 rounded-lg bg-blue-500/15 text-blue-600 dark:text-blue-300 border border-blue-500/30">
+                    AwashBirr
+                  </span>
+                  <span className="px-2 py-1 rounded-lg bg-emerald-500/15 text-emerald-600 dark:text-emerald-300 border border-emerald-500/30">
+                    Debit Cards
+                  </span>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={handleChapaPay}
+                disabled={isChapaLoading || !parseFloat(chapaAmount) || parseFloat(chapaAmount) < 5}
+                className="w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white font-bold text-sm shadow-md shadow-emerald-500/20 transition-all flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
+              >
+                {isChapaLoading ? (
+                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                ) : (
+                  <CreditCard className="w-4 h-4" />
+                )}
+                <span>
+                  {isChapaLoading
+                    ? "Opening Chapa Checkout..."
+                    : `Pay ${parseFloat(chapaAmount) || 0} ETB with Chapa`}
+                </span>
+                <ExternalLink className="w-4 h-4 ml-1 opacity-80" />
+              </button>
+
+              {chapaSyncMsg && (
+                <div className="p-3 rounded-xl bg-slate-100 dark:bg-slate-800 text-xs text-slate-700 dark:text-slate-300 flex items-center gap-2">
+                  <Check className="w-4 h-4 text-emerald-500 shrink-0" />
+                  <span>{chapaSyncMsg}</span>
+                </div>
+              )}
+
+              <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex items-center justify-between text-xs">
+                <div className="text-[11px] text-slate-500">
+                  Already paid in another tab?
+                </div>
+                <button
+                  type="button"
+                  onClick={handleSyncChapa}
+                  disabled={isSyncingChapa}
+                  className="px-3 py-1.5 rounded-lg bg-emerald-600/10 text-emerald-600 dark:text-emerald-400 font-bold hover:bg-emerald-600/20 transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                >
+                  <RefreshCw className={`w-3.5 h-3.5 ${isSyncingChapa ? "animate-spin" : ""}`} />
+                  <span>{isSyncingChapa ? "Checking..." : "Sync Balance Now"}</span>
+                </button>
+              </div>
+
+              <div className="text-center flex items-center justify-center gap-1 text-[11px] text-slate-400">
+                <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
+                <span>Chapa Test Mode &bull; Opens in a new tab</span>
+              </div>
+            </div>
+          )
         ) : (
           /* Main Deposit Form Matching the User's Screenshot */
           <form onSubmit={handleSubmit} className="space-y-3.5 animate-fade-in">
