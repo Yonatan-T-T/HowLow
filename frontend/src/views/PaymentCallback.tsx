@@ -22,7 +22,10 @@ export const PaymentCallback: React.FC = () => {
   const reference =
     searchParams.get("reference") ||
     searchParams.get("tx_ref") ||
-    searchParams.get("trx_ref");
+    searchParams.get("trx_ref") ||
+    searchParams.get("merchant_reference") ||
+    searchParams.get("ref_id") ||
+    localStorage.getItem("last_chapa_tx_ref");
 
   useEffect(() => {
     if (!reference) {
@@ -42,6 +45,7 @@ export const PaymentCallback: React.FC = () => {
           setStatus("success");
           setMessage(res.message || "Payment verified and wallet credited!");
           setAmountCredited(res.amount);
+          localStorage.removeItem("last_chapa_tx_ref");
           // Refresh user session so updated balance is reflected globally
           await refreshUser();
         } else {

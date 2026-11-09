@@ -89,11 +89,13 @@ public class ChapaService : IChapaService
         // Amount in cents (minimum 100 cents = 1.00 ETB)
         long amountInCents = (long)Math.Round(dto.Amount * 100, 0);
 
-        // Chapa v2 requires return_url to be a valid HTTPS URL. If testing on localhost (http), omit it
+        // Prepare safe return_url with tx_ref attached so callback page can immediately verify
         string? safeReturnUrl = null;
-        if (!string.IsNullOrWhiteSpace(dto.ReturnUrl) && dto.ReturnUrl.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
+        if (!string.IsNullOrWhiteSpace(dto.ReturnUrl))
         {
-            safeReturnUrl = dto.ReturnUrl;
+            var trimmed = dto.ReturnUrl.Trim();
+            var separator = trimmed.Contains("?") ? "&" : "?";
+            safeReturnUrl = $"{trimmed}{separator}tx_ref={txRef}";
         }
 
         var requestPayload = new ChapaHostedPaymentRequest
@@ -102,6 +104,7 @@ public class ChapaService : IChapaService
             Currency = "ETB",
             MerchantReference = txRef,
             ReturnUrl = safeReturnUrl,
+            CallbackUrl = "https://howlow-backend.onrender.com/api/payment/chapa/webhook",
             Customer = new ChapaCustomerDto
             {
                 FirstName = user.Username,
@@ -321,10 +324,11 @@ public class ChapaService : IChapaService
                 PropertyNameCaseInsensitive = true
             });
 
+            var statusStr = verifyResult?.Data?.Status?.ToUpperInvariant() ?? "";
             var isVerified = response.IsSuccessStatusCode &&
                 verifyResult != null &&
                 string.Equals(verifyResult.Status, "success", StringComparison.OrdinalIgnoreCase) &&
-                string.Equals(verifyResult.Data?.Status, "SUCCESS", StringComparison.OrdinalIgnoreCase);
+                (statusStr == "SUCCESS" || statusStr == "PAID" || statusStr == "COMPLETED");
 
             if (isVerified)
             {
@@ -384,6 +388,43 @@ public class ChapaService : IChapaService
                 TxRef = cleanTxRef
             };
         }
+    }
+
+    public async Task<SyncPaymentsResponseDto> SyncUserPendingPaymentsAsync(int userId)
+    {
+        var pendingTxs = await _context.PaymentTransactions
+            .Where(t => t.UserId == userId && t.Status == "Pending" && t.CreatedAt >= DateTime.UtcNow.AddHours(-3))
+            .OrderByDescending(t => t.CreatedAt)
+            .Take(5)
+            .ToListAsync();
+
+        int credited = 0;
+        foreach (var tx in pendingTxs)
+        {
+            try
+            {
+                var res = await VerifyPaymentAsync(tx.TxRef);
+                if (res.Success && (res.Status == "Success" || res.Status == "SUCCESS"))
+                {
+                    credited++;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to sync pending transaction {TxRef}", tx.TxRef);
+            }
+        }
+
+        var user = await _context.Users.FindAsync(userId);
+        return new SyncPaymentsResponseDto
+        {
+            Success = true,
+            CreditedCount = credited,
+            CurrentBalance = user?.Balance ?? 0,
+            Message = credited > 0 
+                ? $"Successfully verified and credited {credited} payment(s) to your account!" 
+                : "No pending completed payments found."
+        };
     }
 }
 

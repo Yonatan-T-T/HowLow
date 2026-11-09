@@ -203,3 +203,10 @@ export interface ChapaVerifyResponse {
   txRef?: string;
   status?: string;
 }
+
+export interface ChapaSyncResponse {
+  success: boolean;
+  creditedCount: number;
+  currentBalance: number;
+  message: string;
+}

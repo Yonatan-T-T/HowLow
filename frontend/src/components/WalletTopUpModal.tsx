@@ -28,6 +28,8 @@ export const WalletTopUpModal: React.FC = () => {
   const [chapaAmount, setChapaAmount] = useState<string>("100.00");
   const [isChapaLoading, setIsChapaLoading] = useState<boolean>(false);
   const [chapaError, setChapaError] = useState<string | null>(null);
+  const [isSyncingChapa, setIsSyncingChapa] = useState<boolean>(false);
+  const [chapaSyncMsg, setChapaSyncMsg] = useState<string | null>(null);
 
   // Form states matching user's Telebirr modal reference
   const [amount, setAmount] = useState<string>("50.00");
@@ -131,6 +133,9 @@ export const WalletTopUpModal: React.FC = () => {
       const returnUrl = `${window.location.origin}/payment-callback`;
       const res = await api.initializeChapaPayment(parsed, returnUrl);
       if (res.success && res.checkoutUrl) {
+        if (res.txRef) {
+          localStorage.setItem("last_chapa_tx_ref", res.txRef);
+        }
         window.location.href = res.checkoutUrl;
       } else {
         setChapaError(res.message || "Failed to initialize payment with Chapa.");
@@ -142,6 +147,30 @@ export const WalletTopUpModal: React.FC = () => {
       );
     } finally {
       setIsChapaLoading(false);
+    }
+  };
+
+  const handleSyncChapa = async () => {
+    try {
+      setIsSyncingChapa(true);
+      setChapaSyncMsg(null);
+      const res = await api.syncChapaPayments();
+      if (res.creditedCount > 0) {
+        setChapaSyncMsg(
+          `Success! Credited ${res.creditedCount} payment(s) to your wallet (+${res.currentBalance.toFixed(2)} ETB total balance)!`,
+        );
+        await refreshUser();
+      } else {
+        setChapaSyncMsg(
+          res.message || "No pending payments completed yet. If you just paid, give it 10 seconds and try again.",
+        );
+      }
+    } catch (err: any) {
+      setChapaSyncMsg(
+        err.response?.data?.message || "Failed to synchronize payments with Chapa.",
+      );
+    } finally {
+      setIsSyncingChapa(false);
     }
   };
 
@@ -526,6 +555,28 @@ export const WalletTopUpModal: React.FC = () => {
                   : `Pay ${parseFloat(chapaAmount) || 0} ETB with Chapa`}
               </span>
             </button>
+
+            {chapaSyncMsg && (
+              <div className="p-3 rounded-xl bg-slate-100 dark:bg-slate-800 text-xs text-slate-700 dark:text-slate-300 flex items-center gap-2">
+                <Check className="w-4 h-4 text-emerald-500 shrink-0" />
+                <span>{chapaSyncMsg}</span>
+              </div>
+            )}
+
+            <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex items-center justify-between text-xs">
+              <div className="text-[11px] text-slate-500">
+                Already paid on Chapa?
+              </div>
+              <button
+                type="button"
+                onClick={handleSyncChapa}
+                disabled={isSyncingChapa}
+                className="px-3 py-1.5 rounded-lg bg-emerald-600/10 text-emerald-600 dark:text-emerald-400 font-bold hover:bg-emerald-600/20 transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${isSyncingChapa ? "animate-spin" : ""}`} />
+                <span>{isSyncingChapa ? "Checking..." : "Sync Balance Now"}</span>
+              </button>
+            </div>
 
             <div className="text-center flex items-center justify-center gap-1 text-[11px] text-slate-400">
               <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />

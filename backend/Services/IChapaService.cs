@@ -6,5 +6,6 @@ public interface IChapaService
 {
     Task<InitializePaymentResponseDto> InitializePaymentAsync(int userId, InitializePaymentDto dto);
     Task<VerifyPaymentResponseDto> VerifyPaymentAsync(string txRef);
+    Task<SyncPaymentsResponseDto> SyncUserPendingPaymentsAsync(int userId);
 }
 

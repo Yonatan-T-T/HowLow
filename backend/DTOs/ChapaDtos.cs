@@ -30,6 +30,14 @@ public class VerifyPaymentResponseDto
     public string? Status { get; set; }
 }
 
+public class SyncPaymentsResponseDto
+{
+    public bool Success { get; set; }
+    public int CreditedCount { get; set; }
+    public decimal CurrentBalance { get; set; }
+    public string Message { get; set; } = string.Empty;
+}
+
 // Chapa API v2 Request & Response Mappings
 public class ChapaCustomerDto
 {

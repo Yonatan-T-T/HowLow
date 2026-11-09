@@ -102,12 +102,63 @@ public class PaymentController : ControllerBase
         return Ok(result);
     }
 
-    [HttpPost("chapa/webhook")]
-    public async Task<IActionResult> ChapaWebhook([FromBody] object payload)
+    [HttpPost("chapa/sync")]
+    public async Task<ActionResult<SyncPaymentsResponseDto>> SyncMyPendingPayments()
     {
-        _logger.LogInformation("Received Chapa Webhook: {Payload}", payload);
-        // Chapa webhook can also invoke verification if needed
-        return Ok(new { received = true });
+        var userId = GetCurrentUserId();
+        if (!userId.HasValue || userId.Value <= 0)
+        {
+            return Unauthorized(new SyncPaymentsResponseDto
+            {
+                Success = false,
+                Message = "User authentication required."
+            });
+        }
+
+        var result = await _chapaService.SyncUserPendingPaymentsAsync(userId.Value);
+        return Ok(result);
+    }
+
+    [HttpPost("chapa/webhook")]
+    public async Task<IActionResult> ChapaWebhook([FromBody] System.Text.Json.JsonElement payload)
+    {
+        try
+        {
+            _logger.LogInformation("Received Chapa Webhook: {Payload}", payload.ToString());
+
+            string? txRef = null;
+            if (payload.TryGetProperty("data", out var dataElem))
+            {
+                if (dataElem.TryGetProperty("tx_ref", out var txProp))
+                    txRef = txProp.GetString();
+                else if (dataElem.TryGetProperty("merchant_reference", out var mrProp))
+                    txRef = mrProp.GetString();
+                else if (dataElem.TryGetProperty("reference", out var refProp))
+                    txRef = refProp.GetString();
+            }
+
+            if (string.IsNullOrWhiteSpace(txRef))
+            {
+                if (payload.TryGetProperty("tx_ref", out var flatTx))
+                    txRef = flatTx.GetString();
+                else if (payload.TryGetProperty("trx_ref", out var flatTrx))
+                    txRef = flatTrx.GetString();
+            }
+
+            if (!string.IsNullOrWhiteSpace(txRef))
+            {
+                var verifyResult = await _chapaService.VerifyPaymentAsync(txRef);
+                _logger.LogInformation("Webhook auto-verification result for {TxRef}: {Success} {Message}",
+                    txRef, verifyResult.Success, verifyResult.Message);
+            }
+
+            return Ok(new { received = true });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error processing Chapa webhook");
+            return Ok(new { received = true });
+        }
     }
 }
 

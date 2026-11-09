@@ -325,4 +325,13 @@ export const api = {
     >(`/payment/chapa/verify/${encodeURIComponent(txRef)}`);
     return res.data;
   },
+
+  syncChapaPayments: async (): Promise<
+    import("../types/auction").ChapaSyncResponse
+  > => {
+    const res = await apiClient.post<
+      import("../types/auction").ChapaSyncResponse
+    >("/payment/chapa/sync");
+    return res.data;
+  },
 };
