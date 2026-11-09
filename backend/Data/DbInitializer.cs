@@ -61,6 +61,26 @@ public static class DbInitializer
                     );");
             }
             catch { /* Table already exists */ }
+
+            try
+            {
+                await context.Database.ExecuteSqlRawAsync(@"
+                    CREATE TABLE IF NOT EXISTS PaymentTransactions (
+                        Id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        UserId INTEGER NOT NULL,
+                        TxRef TEXT NOT NULL,
+                        ChapaReference TEXT NULL,
+                        Amount TEXT NOT NULL,
+                        Currency TEXT NOT NULL,
+                        Status TEXT NOT NULL,
+                        PaymentMethod TEXT NOT NULL,
+                        CreatedAt TEXT NOT NULL,
+                        CompletedAt TEXT NULL,
+                        ErrorMessage TEXT NULL,
+                        FOREIGN KEY(UserId) REFERENCES Users(Id) ON DELETE CASCADE
+                    );");
+            }
+            catch { /* Table already exists */ }
         }
 
         // Check if database needs seeding or updating with passwords & phone numbers

@@ -31,9 +31,23 @@ public class ChapaService : IChapaService
 
     private string? GetSecretKey()
     {
-        return _configuration["Chapa:SecretKey"]
+        var key = _configuration["Chapa:SecretKey"]
+            ?? _configuration["Chapa__SecretKey"]
             ?? _configuration["CHAPA_SECRET_KEY"]
+            ?? Environment.GetEnvironmentVariable("Chapa__SecretKey")
             ?? Environment.GetEnvironmentVariable("CHAPA_SECRET_KEY");
+
+        return string.IsNullOrWhiteSpace(key) ? null : key.Trim();
+    }
+
+    private static string FormatPhoneForChapa(string? phone)
+    {
+        if (string.IsNullOrWhiteSpace(phone)) return "+251911000000";
+        var clean = phone.Trim().Replace(" ", "").Replace("-", "");
+        if (clean.StartsWith("+")) return clean;
+        if (clean.StartsWith("0")) return "+251" + clean.Substring(1);
+        if (clean.StartsWith("251")) return "+" + clean;
+        return "+251" + clean;
     }
 
     public async Task<InitializePaymentResponseDto> InitializePaymentAsync(int userId, InitializePaymentDto dto)
@@ -44,7 +58,18 @@ public class ChapaService : IChapaService
             return new InitializePaymentResponseDto
             {
                 Success = false,
-                Message = "Chapa Secret Key is not configured. Please add 'Chapa:SecretKey' to appsettings.json or environment variables."
+                Message = "Chapa Secret Key is not configured. Please add 'Chapa:SecretKey' to appsettings.json or 'Chapa__SecretKey' to Render environment variables."
+            };
+        }
+
+        // Catch if user accidentally copied the Public Key instead of Private Key
+        if (secretKey.Contains("_PUB_", StringComparison.OrdinalIgnoreCase) || 
+            secretKey.StartsWith("CHAPUBK", StringComparison.OrdinalIgnoreCase))
+        {
+            return new InitializePaymentResponseDto
+            {
+                Success = false,
+                Message = "Invalid Key: You configured a Public Key. Please copy your 'Private Key' from the Chapa Dashboard instead."
             };
         }
 
@@ -64,17 +89,24 @@ public class ChapaService : IChapaService
         // Amount in cents (minimum 100 cents = 1.00 ETB)
         long amountInCents = (long)Math.Round(dto.Amount * 100, 0);
 
+        // Chapa v2 requires return_url to be a valid HTTPS URL. If testing on localhost (http), omit it
+        string? safeReturnUrl = null;
+        if (!string.IsNullOrWhiteSpace(dto.ReturnUrl) && dto.ReturnUrl.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
+        {
+            safeReturnUrl = dto.ReturnUrl;
+        }
+
         var requestPayload = new ChapaHostedPaymentRequest
         {
             AmountInCents = amountInCents,
             Currency = "ETB",
             MerchantReference = txRef,
-            ReturnUrl = dto.ReturnUrl,
+            ReturnUrl = safeReturnUrl,
             Customer = new ChapaCustomerDto
             {
                 FirstName = user.Username,
                 Email = user.Email,
-                PhoneNumber = !string.IsNullOrWhiteSpace(user.PhoneNumber) ? user.PhoneNumber : "0911000000"
+                PhoneNumber = FormatPhoneForChapa(user.PhoneNumber)
             },
             Customization = new ChapaCustomizationDto
             {
@@ -87,10 +119,14 @@ public class ChapaService : IChapaService
         {
             var client = _httpClientFactory.CreateClient("ChapaClient");
             var request = new HttpRequestMessage(HttpMethod.Post, $"{ChapaBaseUrl}/payments/hosted");
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", secretKey.Trim());
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", secretKey);
             request.Headers.Add("Idempotency-Key", Guid.NewGuid().ToString());
 
-            var jsonContent = JsonSerializer.Serialize(requestPayload);
+            var jsonOptions = new JsonSerializerOptions
+            {
+                DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
+            };
+            var jsonContent = JsonSerializer.Serialize(requestPayload, jsonOptions);
             request.Content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
 
             var response = await client.SendAsync(request);
@@ -131,10 +167,27 @@ public class ChapaService : IChapaService
                 };
             }
 
+            string errorDetail = chapaResult?.Message ?? string.Empty;
+            if (string.IsNullOrWhiteSpace(errorDetail))
+            {
+                try
+                {
+                    using var doc = JsonDocument.Parse(responseBody);
+                    if (doc.RootElement.TryGetProperty("message", out var msgElem))
+                        errorDetail = msgElem.GetString() ?? responseBody;
+                    else
+                        errorDetail = responseBody;
+                }
+                catch
+                {
+                    errorDetail = responseBody;
+                }
+            }
+
             return new InitializePaymentResponseDto
             {
                 Success = false,
-                Message = chapaResult?.Message ?? $"Failed to initialize Chapa payment: {response.StatusCode}"
+                Message = !string.IsNullOrWhiteSpace(errorDetail) ? errorDetail : $"Chapa returned {response.StatusCode}"
             };
         }
         catch (Exception ex)

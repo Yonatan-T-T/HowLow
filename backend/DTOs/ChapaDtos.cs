@@ -34,24 +34,30 @@ public class VerifyPaymentResponseDto
 public class ChapaCustomerDto
 {
     [JsonPropertyName("first_name")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? FirstName { get; set; }
 
     [JsonPropertyName("last_name")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? LastName { get; set; }
 
     [JsonPropertyName("email")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? Email { get; set; }
 
     [JsonPropertyName("phone_number")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? PhoneNumber { get; set; }
 }
 
 public class ChapaCustomizationDto
 {
     [JsonPropertyName("title")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? Title { get; set; }
 
     [JsonPropertyName("description")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? Description { get; set; }
 }
 
@@ -67,16 +73,20 @@ public class ChapaHostedPaymentRequest
     public string MerchantReference { get; set; } = string.Empty;
 
     [JsonPropertyName("customer")]
-    public ChapaCustomerDto Customer { get; set; } = new();
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public ChapaCustomerDto? Customer { get; set; }
 
     [JsonPropertyName("return_url")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? ReturnUrl { get; set; }
 
     [JsonPropertyName("callback_url")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? CallbackUrl { get; set; }
 
     [JsonPropertyName("customization")]
-    public ChapaCustomizationDto Customization { get; set; } = new();
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public ChapaCustomizationDto? Customization { get; set; }
 }
 
 public class ChapaHostedPaymentResponseData
